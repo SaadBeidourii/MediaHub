@@ -1,27 +1,86 @@
 package main
 
 import (
+	"database/sql"
+	"fmt"
 	"log"
 	"net/http"
 	"time"
 
+	"github.com/SaadBeidourii/MediaHub.git/internal/config"
+	"github.com/SaadBeidourii/MediaHub.git/internal/handlers"
+	"github.com/SaadBeidourii/MediaHub.git/internal/services"
+	"github.com/SaadBeidourii/MediaHub.git/internal/storage"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	_ "github.com/lib/pq"
 )
 
 func main() {
-	// Initialize the Gin router
+	// Load configuration
+	cfg := config.NewConfig()
+
+	// Initialize database connection
+	dbConnString := fmt.Sprintf(
+		"host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
+		cfg.Database.Host, cfg.Database.Port, cfg.Database.User,
+		cfg.Database.Password, cfg.Database.Name, cfg.Database.SSLMode,
+	)
+
+	db, err := sql.Open("postgres", dbConnString)
+	if err != nil {
+		log.Fatalf("Failed to connect to database: %v", err)
+	}
+	defer db.Close()
+
+	// Test database connection
+	if err := db.Ping(); err != nil {
+		log.Fatalf("Failed to ping database: %v", err)
+	}
+	log.Println("Successfully connected to PostgreSQL database")
+
+	// Initialize storage
+	var storageProvider storage.StorageProvider
+
+	// Create storage provider based on configuration
+	switch cfg.Storage.Type {
+	case "local":
+		storageProvider, err = storage.NewLocalStorage(cfg.Storage.BasePath)
+		if err != nil {
+			log.Fatalf("Failed to initialize storage: %v", err)
+		}
+	// Add other storage providers as needed (S3, etc.)
+	default:
+		log.Fatalf("Unsupported storage type: %s", cfg.Storage.Type)
+	}
+
+	// Initialize the PostgreSQL asset store
+	assetStore, err := storage.NewPostgresAssetStore(db)
+	if err != nil {
+		log.Fatalf("Failed to initialize PostgreSQL asset store: %v", err)
+	}
+
+	// Initialize services
+	assetService := services.NewAssetService(storageProvider, assetStore)
+
+	// Initialize handlers
+	assetHandler := handlers.NewAssetHandler(assetService)
+
+	// Initialize Gin router
 	router := gin.Default()
 
 	// Configure CORS
 	router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:4200"},
-		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
-		ExposeHeaders:    []string{"Content-Length"},
-		AllowCredentials: true,
+		AllowOrigins:     cfg.CORS.AllowOrigins,
+		AllowMethods:     cfg.CORS.AllowMethods,
+		AllowHeaders:     cfg.CORS.AllowHeaders,
+		ExposeHeaders:    cfg.CORS.ExposeHeaders,
+		AllowCredentials: cfg.CORS.AllowCredentials,
 		MaxAge:           12 * time.Hour,
 	}))
+
+	// Set maximum multipart memory for file uploads (32MB)
+	router.MaxMultipartMemory = 32 << 20
 
 	// Health check endpoint
 	router.GET("/health", func(c *gin.Context) {
@@ -38,38 +97,29 @@ func main() {
 		// Assets endpoints
 		assets := api.Group("/assets")
 		{
-			assets.GET("/", func(c *gin.Context) {
-				c.JSON(http.StatusOK, gin.H{
-					"message": "List assets endpoint",
-				})
-			})
-			assets.POST("/", func(c *gin.Context) {
-				c.JSON(http.StatusOK, gin.H{
-					"message": "Upload asset endpoint",
-				})
-			})
-			assets.GET("/:id", func(c *gin.Context) {
-				c.JSON(http.StatusOK, gin.H{
-					"message": "Get asset details endpoint",
-					"id":      c.Param("id"),
-				})
-			})
+			// List all assets
+			assets.GET("/", assetHandler.ListAssets)
+
+			// Upload a new PDF asset
+			assets.POST("/pdf", assetHandler.UploadPDF)
+
+			// Get asset details
+			assets.GET("/:id", assetHandler.GetAsset)
+
+			// Download asset
+			assets.GET("/:id/download", assetHandler.DownloadAsset)
+
+			// Delete asset
+			assets.DELETE("/:id", assetHandler.DeleteAsset)
 		}
 
-		// Collections endpoints
-		collections := api.Group("/collections")
-		{
-			collections.GET("/", func(c *gin.Context) {
-				c.JSON(http.StatusOK, gin.H{
-					"message": "List collections endpoint",
-				})
-			})
-		}
+		// Collections endpoints can be added here when needed
 	}
 
 	// Start the server
-	log.Println("Starting MediaHub API server on :8080")
-	if err := router.Run(":8080"); err != nil {
+	serverAddr := fmt.Sprintf("%s:%s", cfg.Server.Host, cfg.Server.Port)
+	log.Printf("Starting MediaHub API server on %s", serverAddr)
+	if err := router.Run(serverAddr); err != nil {
 		log.Fatalf("Failed to start server: %v", err)
 	}
 }
