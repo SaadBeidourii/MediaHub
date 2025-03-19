@@ -2,6 +2,7 @@ package services
 
 import (
 	"fmt"
+	"io"
 	"mime/multipart"
 	"path/filepath"
 	"time"
@@ -27,47 +28,47 @@ func NewAssetService(storageProvider storage.StorageProvider, assetStore storage
 
 // CreatePDFAsset handles creating a new PDF asset
 func (s *AssetService) CreatePDFAsset(fileHeader *multipart.FileHeader) (*models.Asset, error) {
-	// Open the uploaded file
-	file, err := fileHeader.Open()
-	if err != nil {
-		return nil, fmt.Errorf("failed to open uploaded file: %w", err)
-	}
-	defer file.Close()
+    // Open the uploaded file
+    file, err := fileHeader.Open()
+    if err != nil {
+        return nil, fmt.Errorf("failed to open uploaded file: %w", err)
+    }
+    defer file.Close()
 
-	// Generate a unique ID for the asset
-	assetID := uuid.New().String()
+    // Generate a unique ID for the asset
+    assetID := uuid.New().String()
 
-	// Create a new asset
-	now := time.Now()
-	asset := &models.Asset{
-		ID:          assetID,
-		Name:        fileHeader.Filename,
-		Type:        models.AssetTypePDF,
-		Size:        fileHeader.Size,
-		ContentType: fileHeader.Header.Get("Content-Type"),
-		CreatedAt:   now,
-		UpdatedAt:   now,
-		Metadata:    make(map[string]interface{}),
-	}
+    // Create a new asset
+    now := time.Now()
+    asset := &models.Asset{
+        ID:          assetID,
+        Name:        fileHeader.Filename,
+        Type:        models.AssetTypePDF,
+        Size:        fileHeader.Size,
+        ContentType: fileHeader.Header.Get("Content-Type"),
+        CreatedAt:   now,
+        UpdatedAt:   now,
+        Metadata:    make(map[string]interface{}),
+        Path:        fmt.Sprintf("db://%s", assetID),
+    }
 
-	// Add file extension to metadata
-	asset.Metadata["extension"] = filepath.Ext(fileHeader.Filename)
+    // Add file extension to metadata
+    asset.Metadata["extension"] = filepath.Ext(fileHeader.Filename)
 
-	// Save the file using the storage provider
-	path, err := s.storage.Save(file, asset)
-	if err != nil {
-		return nil, fmt.Errorf("failed to save file: %w", err)
-	}
+    // FIRST: Save the asset metadata to the database
+    if err := s.assetStore.Save(asset); err != nil {
+        return nil, fmt.Errorf("failed to save asset metadata: %w", err)
+    }
 
-	// Update the asset with the storage path
-	asset.Path = path
+    // THEN: Save the file content
+    _, err = s.storage.Save(file, asset)
+    if err != nil {
+        // If file save fails, clean up the asset metadata
+        s.assetStore.Delete(assetID)
+        return nil, fmt.Errorf("failed to save file: %w", err)
+    }
 
-	// Save the asset to the asset store
-	if err := s.assetStore.Save(asset); err != nil {
-		return nil, fmt.Errorf("failed to save asset metadata: %w", err)
-	}
-
-	return asset, nil
+    return asset, nil
 }
 
 // GetAsset retrieves an asset by ID
@@ -78,15 +79,24 @@ func (s *AssetService) GetAsset(assetID string) (*models.Asset, error) {
 		return nil, err
 	}
 
-	// Check if the file exists in storage
-	_, err = s.storage.Get(assetID)
+	return asset, nil
+}
+
+// GetAssetContent retrieves the content of an asset by ID
+func (s *AssetService) GetAssetContent(assetID string) (io.ReadCloser, error) {
+	// Check if the asset exists
+	_, err := s.assetStore.GetByID(assetID)
 	if err != nil {
-		// If the file doesn't exist but we have metadata, we should clean up
-		s.assetStore.Delete(assetID)
-		return nil, fmt.Errorf("asset file not found: %w", err)
+		return nil, err
 	}
 
-	return asset, nil
+	// Get the file content from storage
+	content, err := s.storage.Get(assetID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get asset content: %w", err)
+	}
+
+	return content, nil
 }
 
 // GetAllAssets retrieves all assets

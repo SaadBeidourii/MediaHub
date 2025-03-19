@@ -1,0 +1,214 @@
+// Variables
+$dark-bg: #121212;
+$card-bg: #1e1e1e;
+$text-primary: #ffffff;
+$text-secondary: rgba(255, 255, 255, 0.7);
+$accent-color: #3a86ff;
+$border-radius: 12px;
+
+.home-container {
+  padding: 2rem;
+  color: $text-primary;
+  font-family: 'Inter', sans-serif;
+}
+
+// Dashboard Cards
+.dashboard-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+
+  .card {
+    background-color: $card-bg;
+    border-radius: $border-radius;
+    overflow: hidden;
+    transition: transform 0.2s ease-in-out;
+
+    &:hover {
+      transform: translateY(-5px);
+    }
+
+    .card-content {
+      padding: 1.5rem;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+
+      h2 {
+        font-size: 1.25rem;
+        font-weight: 500;
+        margin: 0;
+      }
+
+      .icon {
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background-color: rgba(255, 255, 255, 0.1);
+      }
+    }
+
+    .card-body {
+      .card-value {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin: 0.5rem 0;
+      }
+
+      .card-description {
+        color: $text-secondary;
+        margin: 0;
+        font-size: 0.875rem;
+      }
+    }
+  }
+}
+
+// Main Content
+.main-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+
+  .section {
+    background-color: $card-bg;
+    border-radius: $border-radius;
+    padding: 1.5rem;
+
+    .section-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin: 0 0 0.5rem 0;
+    }
+
+    .section-subtitle {
+      color: $text-secondary;
+      margin: 0 0 1.5rem 0;
+      font-size: 0.875rem;
+    }
+  }
+}
+
+// Quick Actions
+.quick-actions {
+  .actions-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+
+    .btn {
+      padding: 0.875rem;
+      border-radius: $border-radius;
+      font-weight: 500;
+      font-size: 1rem;
+      cursor: pointer;
+      text-align: center;
+      border: none;
+      transition: background-color 0.2s;
+
+      &.btn-primary {
+        background-color: $accent-color;
+        color: white;
+
+        &:hover {
+          background-color: darken($accent-color, 10%);
+        }
+      }
+
+      &.btn-secondary {
+        background-color: rgba(255, 255, 255, 0.1);
+        color: $text-primary;
+
+        &:hover {
+          background-color: rgba(255, 255, 255, 0.15);
+        }
+      }
+    }
+  }
+}
+
+// Recent Files
+.recent-files {
+  .files-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .file-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem;
+    border-radius: $border-radius;
+    transition: background-color 0.2s;
+
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.05);
+    }
+
+    .file-icon {
+      width: 40px;
+      height: 40px;
+      background-color: rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .file-details {
+      flex: 1;
+
+      .file-name {
+        font-size: 1rem;
+        font-weight: 500;
+        margin: 0 0 0.25rem 0;
+      }
+
+      .file-info {
+        color: $text-secondary;
+        font-size: 0.875rem;
+        margin: 0;
+      }
+    }
+  }
+}
+
+// Icons
+.document-icon, .storage-icon, .time-icon, .pdf-icon {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+}
+
+.document-icon {
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 1.5L18.5 9H13V3.5zM6 20V4h5v7h7v9H6z"/></svg>');
+}
+
+.storage-icon {
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white"><path d="M2 20h20v-4H2v4zm2-3h2v2H4v-2zM2 4v4h20V4H2zm4 3H4V5h2v2zm-4 7h20v-4H2v4zm2-3h2v2H4v-2z"/></svg>');
+}
+
+.time-icon {
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>');
+}
+
+.pdf-icon {
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white"><path d="M20 2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-8.5 7.5c0 .83-.67 1.5-1.5 1.5H9v2H7.5V7H10c.83 0 1.5.67 1.5 1.5v1zm5 2c0 .83-.67 1.5-1.5 1.5h-2.5V7H15c.83 0 1.5.67 1.5 1.5v3zm4-3H19v1h1.5V11H19v2h-1.5V7h3v1.5zM9 9.5h1v-1H9v1zM4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm10 5.5h1v-3h-1v3z"/></svg>');
+}

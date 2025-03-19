@@ -2,7 +2,6 @@ package config
 
 import (
 	"os"
-	"path/filepath"
 )
 
 // Config holds the application configuration
@@ -20,12 +19,6 @@ type Config struct {
 		AllowHeaders     []string
 		ExposeHeaders    []string
 		AllowCredentials bool
-	}
-
-	// Storage configuration
-	Storage struct {
-		Type     string // "local", "s3", "minio", etc.
-		BasePath string // For local storage
 	}
 
 	// Database configuration
@@ -53,10 +46,6 @@ func NewConfig() *Config {
 	cfg.CORS.AllowHeaders = []string{"Origin", "Content-Type", "Accept", "Authorization"}
 	cfg.CORS.ExposeHeaders = []string{"Content-Length"}
 	cfg.CORS.AllowCredentials = true
-
-	// Default storage configuration
-	cfg.Storage.Type = getEnv("STORAGE_TYPE", "local")
-	cfg.Storage.BasePath = getEnv("STORAGE_PATH", filepath.Join(os.TempDir(), "mediahub", "assets"))
 
 	// Default database configuration
 	cfg.Database.Host = getEnv("DB_HOST", "postgres")

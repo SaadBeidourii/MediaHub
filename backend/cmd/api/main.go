@@ -39,25 +39,16 @@ func main() {
 	}
 	log.Println("Successfully connected to PostgreSQL database")
 
-	// Initialize storage
-	var storageProvider storage.StorageProvider
-
-	// Create storage provider based on configuration
-	switch cfg.Storage.Type {
-	case "local":
-		storageProvider, err = storage.NewLocalStorage(cfg.Storage.BasePath)
-		if err != nil {
-			log.Fatalf("Failed to initialize storage: %v", err)
-		}
-	// Add other storage providers as needed (S3, etc.)
-	default:
-		log.Fatalf("Unsupported storage type: %s", cfg.Storage.Type)
-	}
-
-	// Initialize the PostgreSQL asset store
+	// Initialize the PostgreSQL asset store for metadata
 	assetStore, err := storage.NewPostgresAssetStore(db)
 	if err != nil {
 		log.Fatalf("Failed to initialize PostgreSQL asset store: %v", err)
+	}
+
+	// Initialize the PostgreSQL storage provider for file content
+	storageProvider, err := storage.NewPostgresStorageProvider(db)
+	if err != nil {
+		log.Fatalf("Failed to initialize PostgreSQL storage provider: %v", err)
 	}
 
 	// Initialize services

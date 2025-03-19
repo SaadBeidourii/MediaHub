@@ -1,0 +1,85 @@
+<div class="files-container">
+  <!-- Header section -->
+  <div class="files-header">
+    <div class="header-title">
+      <h1>Your Files</h1>
+      <p class="subtitle">Manage your uploaded PDF files</p>
+    </div>
+    <div class="view-options">
+      <button
+        class="view-btn"
+        [class.active]="viewMode === 'grid'"
+        (click)="setViewMode('grid')"
+        aria-label="Grid view">
+        <i class="grid-icon"></i>
+      </button>
+      <button
+        class="view-btn"
+        [class.active]="viewMode === 'list'"
+        (click)="setViewMode('list')"
+        aria-label="List view">
+        <i class="list-icon"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Search section -->
+  <div class="search-container">
+    <div class="search-input">
+      <i class="search-icon"></i>
+      <input
+        type="text"
+        placeholder="Search files..."
+        [(ngModel)]="searchQuery"
+        (input)="filterFiles()">
+    </div>
+  </div>
+
+  <!-- Files grid -->
+  <div class="files-grid" [class.list-view]="viewMode === 'list'">
+    <div class="file-card" *ngFor="let file of filteredFiles">
+      <div class="file-preview">
+        <i class="pdf-icon"></i>
+      </div>
+      <div class="file-info">
+        <h3 class="file-name">{{ file.name }}</h3>
+        <p class="file-details">{{ file.size }} • {{ file.uploadDate }}</p>
+      </div>
+      <div class="file-actions">
+        <button class="action-btn view-btn" aria-label="View file">
+          <i class="view-file-icon"></i>
+        </button>
+        <button class="action-btn download-btn" aria-label="Download file">
+          <i class="download-icon"></i>
+        </button>
+        <button class="action-btn delete-btn" aria-label="Delete file" (click)="confirmDelete(file)">
+          <i class="delete-icon"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Empty state when no files -->
+    <div class="empty-state" *ngIf="filteredFiles.length === 0">
+      <div class="empty-icon">
+        <i class="empty-files-icon"></i>
+      </div>
+      <h3>No files found</h3>
+      <p *ngIf="searchQuery">No files match your search criteria. Try a different search term.</p>
+      <p *ngIf="!searchQuery">You haven't uploaded any files yet. Upload a file to get started.</p>
+      <button class="btn btn-primary" (click)="navigateToUpload()">Upload PDF</button>
+    </div>
+  </div>
+
+  <!-- Delete confirmation modal -->
+  <div class="modal" *ngIf="showDeleteModal">
+    <div class="modal-content">
+      <h3>Delete File</h3>
+      <p>Are you sure you want to delete <strong>{{ fileToDelete?.name }}</strong>? This action cannot be undone.</p>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" (click)="cancelDelete()">Cancel</button>
+        <button class="btn btn-danger" (click)="deleteFile()">Delete</button>
+      </div>
+    </div>
+  </div>
+  <div class="modal-backdrop" *ngIf="showDeleteModal" (click)="cancelDelete()"></div>
+</div>

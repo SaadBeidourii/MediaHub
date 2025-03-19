@@ -1,0 +1,69 @@
+<div class="upload-container">
+  <div class="upload-card">
+    <h1 class="upload-title">Upload PDF File</h1>
+    <p class="upload-subtitle">Drag and drop your PDF file or click to browse</p>
+
+    <div
+      class="drop-zone"
+      [class.active]="isDragOver"
+      [class.error]="uploadError"
+      (dragover)="onDragOver($event)"
+      (dragleave)="onDragLeave($event)"
+      (drop)="onDrop($event)"
+      (click)="fileInput.click()">
+
+      <div class="drop-zone-content" *ngIf="!isUploading && !uploadComplete">
+        <div class="upload-icon">
+          <i class="cloud-upload-icon"></i>
+        </div>
+        <h3>Drag & drop your PDF file here</h3>
+        <p>or click to browse files</p>
+        <button class="select-btn">Select PDF File</button>
+        <p class="file-limit">Maximum file size: 10MB</p>
+      </div>
+
+      <!-- Upload Progress State -->
+      <div class="upload-progress" *ngIf="isUploading">
+        <div class="progress-icon">
+          <i class="loading-icon"></i>
+        </div>
+        <h3>Uploading...</h3>
+        <div class="progress-bar">
+          <div class="progress-bar-fill" [style.width.%]="uploadProgress"></div>
+        </div>
+        <p>{{ uploadProgress }}% complete</p>
+      </div>
+
+      <!-- Upload Complete State -->
+      <div class="upload-complete" *ngIf="uploadComplete">
+        <div class="complete-icon">
+          <i class="check-icon"></i>
+        </div>
+        <h3>Upload Complete!</h3>
+        <p>Your file has been successfully uploaded</p>
+        <div class="complete-actions">
+          <button class="action-btn primary-btn" (click)="viewFile()">View File</button>
+          <button class="action-btn secondary-btn" (click)="uploadAnother()">Upload Another</button>
+        </div>
+      </div>
+
+      <!-- Error State -->
+      <div class="upload-error" *ngIf="uploadError">
+        <div class="error-icon">
+          <i class="alert-icon"></i>
+        </div>
+        <h3>Upload Failed</h3>
+        <p>{{ errorMessage }}</p>
+        <button class="action-btn secondary-btn" (click)="resetUpload()">Try Again</button>
+      </div>
+    </div>
+
+    <!-- Hidden file input -->
+    <input
+      #fileInput
+      type="file"
+      accept="application/pdf"
+      style="display: none"
+      (change)="onFileSelected($event)">
+  </div>
+</div>

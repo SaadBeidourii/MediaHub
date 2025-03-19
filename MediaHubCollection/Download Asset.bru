@@ -5,7 +5,11 @@ meta {
 }
 
 get {
-  url: http://localhost:8080/api/assets/{asset_id}/download
+  url: http://localhost:8080/api/assets/{{id}}/download
   body: none
   auth: none
+}
+
+vars:pre-request {
+  id: 786a2394-293e-4b53-bd59-2bfedc78f073
 }

@@ -24,10 +24,17 @@ func NewAssetHandler(assetService *services.AssetService) *AssetHandler {
 
 // ListAssets handles GET /api/assets
 func (h *AssetHandler) ListAssets(c *gin.Context) {
-	// In a real application, you would fetch assets from a database
-	// For simplicity, we're returning an empty array
+	// Get all assets from the service
+	assets, err := h.assetService.GetAllAssets()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to retrieve assets",
+		})
+		return
+	}
+
 	c.JSON(http.StatusOK, gin.H{
-		"assets": []models.Asset{},
+		"assets": assets,
 	})
 }
 
@@ -37,7 +44,7 @@ func (h *AssetHandler) UploadPDF(c *gin.Context) {
 	file, err := c.FormFile("file")
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "No file provided",
+			"error": "No file provided or invalid file",
 		})
 		return
 	}
@@ -59,7 +66,7 @@ func (h *AssetHandler) UploadPDF(c *gin.Context) {
 			message = "Empty file"
 		default:
 			statusCode = http.StatusInternalServerError
-			message = "Error validating file"
+			message = "Error validating file: " + err.Error()
 		}
 
 		c.JSON(statusCode, gin.H{
@@ -72,7 +79,7 @@ func (h *AssetHandler) UploadPDF(c *gin.Context) {
 	asset, err := h.assetService.CreatePDFAsset(file)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to process file",
+			"error": "Failed to process file: " + err.Error(),
 		})
 		return
 	}
@@ -107,7 +114,7 @@ func (h *AssetHandler) DownloadAsset(c *gin.Context) {
 	// Get the asset ID from the URL
 	assetID := c.Param("id")
 
-	// Get the asset
+	// Get the asset metadata
 	asset, err := h.assetService.GetAsset(assetID)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
@@ -116,12 +123,23 @@ func (h *AssetHandler) DownloadAsset(c *gin.Context) {
 		return
 	}
 
-	// Set the content disposition header for downloading
+	// Get the file content from storage
+	fileContent, err := h.assetService.GetAssetContent(assetID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to retrieve asset content",
+		})
+		return
+	}
+	defer fileContent.Close()
+
+	// Set appropriate headers for download
 	c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=%s", asset.Name))
 	c.Header("Content-Type", asset.ContentType)
+	c.Header("Content-Length", fmt.Sprintf("%d", asset.Size))
 
-	// TODO: Stream the file content here
-	c.String(http.StatusOK, "File content would be streamed here")
+	// Stream the file content to the client
+	c.DataFromReader(http.StatusOK, asset.Size, asset.ContentType, fileContent, nil)
 }
 
 // DeleteAsset handles DELETE /api/assets/:id
@@ -131,8 +149,15 @@ func (h *AssetHandler) DeleteAsset(c *gin.Context) {
 
 	// Delete the asset
 	if err := h.assetService.DeleteAsset(assetID); err != nil {
+		if err == models.ErrAssetNotFound {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": "Asset not found",
+			})
+			return
+		}
+
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to delete asset",
+			"error": "Failed to delete asset: " + err.Error(),
 		})
 		return
 	}

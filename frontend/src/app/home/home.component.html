@@ -1,0 +1,83 @@
+<div class="home-container">
+  <!-- Header is part of the app component, not included here -->
+
+  <!-- Dashboard Cards -->
+  <div class="dashboard-cards">
+    <div class="card">
+      <div class="card-content">
+        <div class="card-header">
+          <h2>Total Files</h2>
+          <div class="icon">
+            <i class="document-icon"></i>
+          </div>
+        </div>
+        <div class="card-body">
+          <h1 class="card-value">{{ totalFiles }}</h1>
+          <p class="card-description">PDF files in your library</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-content">
+        <div class="card-header">
+          <h2>Storage Used</h2>
+          <div class="icon">
+            <i class="storage-icon"></i>
+          </div>
+        </div>
+        <div class="card-body">
+          <h1 class="card-value">{{ storageUsed }}</h1>
+          <p class="card-description">Total storage consumption</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-content">
+        <div class="card-header">
+          <h2>Last Upload</h2>
+          <div class="icon">
+            <i class="time-icon"></i>
+          </div>
+        </div>
+        <div class="card-body">
+          <h1 class="card-value">{{ lastUploadDate }}</h1>
+          <p class="card-description">Most recent file upload</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content Sections -->
+  <div class="main-content">
+    <!-- Quick Actions Section -->
+    <div class="section quick-actions">
+      <h2 class="section-title">Quick Actions</h2>
+      <p class="section-subtitle">Common tasks you can perform</p>
+
+      <div class="actions-buttons">
+        <button class="btn btn-primary" (click)="uploadNewFile()">Upload New File</button>
+        <button class="btn btn-secondary" (click)="viewAllFiles()">View All Files</button>
+      </div>
+    </div>
+
+    <!-- Recent Files Section -->
+    <div class="section recent-files">
+      <h2 class="section-title">Recent Files</h2>
+      <p class="section-subtitle">Your most recently uploaded files</p>
+
+      <div class="files-list">
+        <div class="file-item" *ngFor="let file of recentFiles">
+          <div class="file-icon">
+            <i class="pdf-icon"></i>
+          </div>
+          <div class="file-details">
+            <h3 class="file-name">{{ file.name }}</h3>
+            <p class="file-info">{{ file.size }} • {{ file.uploadDate }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

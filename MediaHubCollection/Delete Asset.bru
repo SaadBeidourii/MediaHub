@@ -5,7 +5,11 @@ meta {
 }
 
 delete {
-  url: http://localhost:8080/api/assets/{asset_id}
+  url: http://localhost:8080/api/assets/{{id}}
   body: none
   auth: none
+}
+
+vars:pre-request {
+  id: 786a2394-293e-4b53-bd59-2bfedc78f073
 }
