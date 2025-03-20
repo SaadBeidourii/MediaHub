@@ -1,9 +1,10 @@
-import { Component, ElementRef, ViewChild, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, ElementRef, ViewChild, inject, PLATFORM_ID, Inject } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
-import { HttpClient, HttpEventType, HttpHeaders, HttpClientModule } from '@angular/common/http';
+import { HttpEventType, HttpClientModule } from '@angular/common/http';
 import { catchError, finalize, tap } from 'rxjs/operators';
 import { of } from 'rxjs';
+import { AssetService } from '../services/asset.service';
 
 @Component({
   selector: 'app-upload',
@@ -17,7 +18,14 @@ export class UploadComponent {
 
   // Use inject pattern for Angular 14+ standalone components
   private router = inject(Router);
-  private http = inject(HttpClient);
+  private assetService = inject(AssetService);
+
+  // Check if running in browser
+  private isBrowser: boolean;
+
+  constructor(@Inject(PLATFORM_ID) platformId: Object) {
+    this.isBrowser = isPlatformBrowser(platformId);
+  }
 
   // UI state variables
   isDragOver = false;
@@ -33,6 +41,8 @@ export class UploadComponent {
 
   // Handle dragover event
   onDragOver(event: DragEvent): void {
+    if (!this.isBrowser) return;
+
     event.preventDefault();
     event.stopPropagation();
     this.isDragOver = true;
@@ -40,6 +50,8 @@ export class UploadComponent {
 
   // Handle dragleave event
   onDragLeave(event: DragEvent): void {
+    if (!this.isBrowser) return;
+
     event.preventDefault();
     event.stopPropagation();
     this.isDragOver = false;
@@ -47,6 +59,8 @@ export class UploadComponent {
 
   // Handle drop event
   onDrop(event: DragEvent): void {
+    if (!this.isBrowser) return;
+
     event.preventDefault();
     event.stopPropagation();
     this.isDragOver = false;
@@ -59,6 +73,8 @@ export class UploadComponent {
 
   // Handle file selection from file input
   onFileSelected(event: Event): void {
+    if (!this.isBrowser) return;
+
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
       const file = input.files[0];
@@ -92,28 +108,13 @@ export class UploadComponent {
     this.isUploading = true;
     this.uploadProgress = 0;
 
-    // Create form data
-    const formData = new FormData();
-    formData.append('file', file);
-
-    // API endpoint - replace with your actual backend endpoint
-    const uploadUrl = 'http://localhost:8080/api/assets/pdf';
-
-    // Optional: Add headers if needed
-    const headers = new HttpHeaders();
-
-    // Perform the upload
-    this.http.post(uploadUrl, formData, {
-      headers,
-      reportProgress: true,
-      observe: 'events'
-    }).pipe(
+    this.assetService.uploadPdfFile(file).pipe(
       tap(event => {
         if (event.type === HttpEventType.UploadProgress && event.total) {
           this.uploadProgress = Math.round(100 * event.loaded / event.total);
         } else if (event.type === HttpEventType.Response) {
           // Successfully uploaded
-          const response = event.body as any;
+          const response = event.body;
           if (response && response.asset && response.asset.id) {
             this.uploadedFileId = response.asset.id;
             setTimeout(() => {
@@ -162,7 +163,7 @@ export class UploadComponent {
     this.uploadedFileId = '';
 
     // Reset file input
-    if (this.fileInput) {
+    if (this.isBrowser && this.fileInput) {
       this.fileInput.nativeElement.value = '';
     }
   }
@@ -170,7 +171,6 @@ export class UploadComponent {
   // Navigate to the uploaded file
   viewFile(): void {
     if (this.uploadedFileId) {
-      // Navigate to file viewer or details page
       this.router.navigate(['/files']);
     }
   }

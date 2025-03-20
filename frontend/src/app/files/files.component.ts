@@ -1,13 +1,16 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject, PLATFORM_ID, Inject } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { AssetService, Asset } from '../services/asset.service';
 
 interface FileItem {
   id: string;
   name: string;
   size: string;
   uploadDate: string;
+  contentType: string;
 }
 
 @Component({
@@ -18,6 +21,17 @@ interface FileItem {
   imports: [CommonModule, FormsModule]
 })
 export class FilesComponent implements OnInit {
+  // Inject dependencies
+  private router = inject(Router);
+  private assetService = inject(AssetService);
+
+  // Inject PLATFORM_ID to check if we're in browser
+  private isBrowser: boolean;
+
+  constructor(@Inject(PLATFORM_ID) platformId: Object) {
+    this.isBrowser = isPlatformBrowser(platformId);
+  }
+
   // View mode (grid or list)
   viewMode: 'grid' | 'list' = 'grid';
 
@@ -32,50 +46,51 @@ export class FilesComponent implements OnInit {
   showDeleteModal: boolean = false;
   fileToDelete: FileItem | null = null;
 
-  constructor(private router: Router) {}
-
   ngOnInit(): void {
-    // In a real application, you would fetch this data from a service
+    // Only access localStorage in the browser
+    if (this.isBrowser) {
+      const savedViewMode = localStorage.getItem('filesViewMode');
+      if (savedViewMode === 'grid' || savedViewMode === 'list') {
+        this.viewMode = savedViewMode;
+      }
+    }
+
+    // Load files from API
     this.loadFiles();
   }
 
   loadFiles(): void {
-    // Mock data - replace with actual API call in production
-    this.allFiles = [
-      {
-        id: '1',
-        name: 'sample-document.pdf',
-        size: '2.5 MB',
-        uploadDate: 'Mar 17, 2025'
-      },
-      {
-        id: '2',
-        name: 'project-proposal.pdf',
-        size: '1.2 MB',
-        uploadDate: 'Mar 14, 2025'
-      },
-      {
-        id: '3',
-        name: 'user-manual.pdf',
-        size: '4.7 MB',
-        uploadDate: 'Mar 9, 2025'
-      },
-      {
-        id: '4',
-        name: 'financial-report-2023.pdf',
-        size: '3.1 MB',
-        uploadDate: 'Mar 4, 2025'
-      }
-    ];
+    this.assetService.getAllAssets().subscribe({
+      next: (assets) => {
+        this.allFiles = assets.map(asset => ({
+          id: asset.id,
+          name: asset.name,
+          size: this.assetService.formatFileSize(asset.size),
+          uploadDate: new Date(asset.createdAt).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+          }),
+          contentType: asset.contentType
+        }));
 
-    this.filteredFiles = [...this.allFiles];
+        this.filterFiles();
+      },
+      error: (error) => {
+        console.error('Error loading files:', error);
+        // You could add error handling UI here
+      }
+    });
   }
 
   // Set view mode (grid or list)
   setViewMode(mode: 'grid' | 'list'): void {
     this.viewMode = mode;
-    // You could save this preference to localStorage
-    localStorage.setItem('filesViewMode', mode);
+
+    // Only access localStorage in the browser
+    if (this.isBrowser) {
+      localStorage.setItem('filesViewMode', mode);
+    }
   }
 
   // Filter files based on search query
@@ -112,31 +127,47 @@ export class FilesComponent implements OnInit {
   deleteFile(): void {
     if (!this.fileToDelete) return;
 
-    // In a real application, you would call a service to delete the file
-    // this.fileService.deleteFile(this.fileToDelete.id).subscribe(() => {
-    //   // After successful deletion
-    //   this.allFiles = this.allFiles.filter(file => file.id !== this.fileToDelete.id);
-    //   this.filterFiles(); // Re-apply search filter
-    //   this.showDeleteModal = false;
-    //   this.fileToDelete = null;
-    // });
-
-    // For demo, just filter the file out of the array
-    this.allFiles = this.allFiles.filter(file => file.id !== this.fileToDelete!.id);
-    this.filterFiles(); // Re-apply search filter
-    this.showDeleteModal = false;
-    this.fileToDelete = null;
+    this.assetService.deleteAsset(this.fileToDelete.id).subscribe({
+      next: () => {
+        this.allFiles = this.allFiles.filter(file => file.id !== this.fileToDelete!.id);
+        this.filterFiles();
+        this.showDeleteModal = false;
+        this.fileToDelete = null;
+      },
+      error: (error) => {
+        console.error('Error deleting file:', error);
+        // You could add error handling UI here
+        this.showDeleteModal = false;
+        this.fileToDelete = null;
+      }
+    });
   }
 
-  // Handle view file action
+  // View file
   viewFile(file: FileItem): void {
-    // In a real application, you would navigate to a viewer or open the file
-    console.log('Viewing file:', file.name);
+    // Only proceed in browser environment
+    if (!this.isBrowser) return;
+
+    this.assetService.downloadAsset(file.id).subscribe(blob => {
+      const url = window.URL.createObjectURL(blob);
+      window.open(url, '_blank');
+    });
   }
 
-  // Handle download file action
+  // Download file
   downloadFile(file: FileItem): void {
-    // In a real application, you would call a service to download the file
-    console.log('Downloading file:', file.name);
+    // Only proceed in browser environment
+    if (!this.isBrowser) return;
+
+    this.assetService.downloadAsset(file.id).subscribe(blob => {
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = file.name;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      a.remove();
+    });
   }
 }

@@ -1,6 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import {Component, inject, OnInit} from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import {AssetService} from '../services/asset.service';
 
 interface FileItem {
   name: string;
@@ -16,61 +17,26 @@ interface FileItem {
   imports: [CommonModule]
 })
 export class HomeComponent implements OnInit {
+
+  private router = inject(Router);
+  private assetService = inject(AssetService);
+
+
   // Dashboard stats
-  totalFiles: number = 4;
-  storageUsed: string = '11.5 MB';
-  lastUploadDate: string = 'Mar 17, 2025';
+  totalFiles: number = 0;
+  storageUsed: string = '0 MB';
+  lastUploadDate: string = '-';
 
   // Recent files
-  recentFiles: FileItem[] = [
-    {
-      name: 'sample-document.pdf',
-      size: '2.5 MB',
-      uploadDate: 'Mar 17, 2025'
-    },
-    {
-      name: 'project-proposal.pdf',
-      size: '1.2 MB',
-      uploadDate: 'Mar 14, 2025'
-    },
-    {
-      name: 'user-manual.pdf',
-      size: '4.7 MB',
-      uploadDate: 'Mar 9, 2025'
-    },
-    {
-      name: 'financial-report-2023.pdf',
-      size: '3.1 MB',
-      uploadDate: 'Mar 4, 2025'
-    }
-  ];
-
-  constructor(private router: Router) {}
+  recentFiles: FileItem[] = [];
 
   ngOnInit(): void {
-    // Here you would typically fetch data from a service
-    // this.loadDashboardData();
-    // this.loadRecentFiles();
+    this.loadDashboardData();
   }
 
   // Navigate to upload page or open upload dialog
   uploadNewFile(): void {
-    // You could either navigate to an upload page:
     this.router.navigate(['/upload']);
-
-    // Or trigger a file input dialog:
-    // const fileInput = document.createElement('input');
-    // fileInput.type = 'file';
-    // fileInput.accept = 'application/pdf';
-    // fileInput.click();
-    // fileInput.onchange = (event) => {
-    //   // Handle the file upload here
-    //   const target = event.target as HTMLInputElement;
-    //   if (target.files && target.files.length > 0) {
-    //     // Call your service to upload the file
-    //     // this.fileService.uploadFile(target.files[0])
-    //   }
-    // };
   }
 
   // Navigate to files page
@@ -80,18 +46,41 @@ export class HomeComponent implements OnInit {
 
   // You can add methods to fetch data from your backend
   private loadDashboardData(): void {
-    // Example:
-    // this.dashboardService.getStats().subscribe(stats => {
-    //   this.totalFiles = stats.totalFiles;
-    //   this.storageUsed = stats.storageUsed;
-    //   this.lastUploadDate = stats.lastUploadDate;
-    // });
+    this.assetService.getAllAssets().subscribe(assets => {
+      if (assets && assets.length > 0) {
+        // Update total files count
+        this.totalFiles = assets.length;
+
+        // Calculate total storage used
+        const totalBytes = assets.reduce((sum, asset) => sum + asset.size, 0);
+        this.storageUsed = this.assetService.formatFileSize(totalBytes);
+
+        // Find the most recent upload date
+        const sortedAssets = [...assets].sort((a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+
+        if (sortedAssets.length > 0) {
+          const latestAsset = sortedAssets[0];
+          this.lastUploadDate = new Date(latestAsset.createdAt).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+          });
+        }
+
+        // Get recent files (up to 4)
+        this.recentFiles = sortedAssets.slice(0, 4).map(asset => ({
+          name: asset.name,
+          size: this.assetService.formatFileSize(asset.size),
+          uploadDate: new Date(asset.createdAt).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+          })
+        }));
+      }
+    });
   }
 
-  private loadRecentFiles(): void {
-    // Example:
-    // this.fileService.getRecentFiles().subscribe(files => {
-    //   this.recentFiles = files;
-    // });
-  }
 }
