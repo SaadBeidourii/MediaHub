@@ -13,6 +13,8 @@ services:
       - DB_USER=postgres
       - DB_PASSWORD=password
       - DB_NAME=assetvault
+    networks:
+      - mediahub-network
 
   frontend:
     build:
@@ -22,6 +24,8 @@ services:
       - "4200:4200"
     depends_on:
       - backend
+    networks:
+      - mediahub-network
 
   postgres:
     image: postgres:16-alpine
@@ -32,9 +36,13 @@ services:
     volumes:
       - postgres-data:/var/lib/postgresql/data
     ports:
-    - "5432:5432"
+      - "5432:5432"
+    networks:
+      - mediahub-network
 
-
+networks:
+  mediahub-network:
+    driver: bridge
 
 volumes:
   postgres-data:

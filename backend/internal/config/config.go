@@ -38,10 +38,10 @@ func NewConfig() *Config {
 
 	// Default server configuration
 	cfg.Server.Port = getEnv("SERVER_PORT", "8080")
-	cfg.Server.Host = getEnv("SERVER_HOST", "localhost")
+	cfg.Server.Host = getEnv("SERVER_HOST", "0.0.0.0")
 
 	// Default CORS configuration
-	cfg.CORS.AllowOrigins = []string{"*", "http://localhost:4200"}
+	cfg.CORS.AllowOrigins = []string{"http://localhost:4200", "http://frontend:4200"}
 	cfg.CORS.AllowMethods = []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"}
 	cfg.CORS.AllowHeaders = []string{"Origin", "Content-Type", "Accept", "Authorization"}
 	cfg.CORS.ExposeHeaders = []string{"Content-Length"}

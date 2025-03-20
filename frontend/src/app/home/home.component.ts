@@ -46,6 +46,7 @@ export class HomeComponent implements OnInit {
 
   // You can add methods to fetch data from your backend
   private loadDashboardData(): void {
+    console.log('Loading dashboard data...');
     this.assetService.getAllAssets().subscribe(assets => {
       if (assets && assets.length > 0) {
         // Update total files count
