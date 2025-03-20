@@ -1,9 +1,10 @@
-import { Component, OnInit, inject, PLATFORM_ID, Inject } from '@angular/core';
+import { Component, OnInit, inject, PLATFORM_ID, Inject,ViewChild, AfterViewInit,ElementRef } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AssetService, Asset } from '../services/asset.service';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
 interface FileItem {
   id: string;
@@ -20,10 +21,13 @@ interface FileItem {
   standalone: true,
   imports: [CommonModule, FormsModule]
 })
-export class FilesComponent implements OnInit {
+export class FilesComponent implements OnInit, AfterViewInit{
   // Inject dependencies
   private router = inject(Router);
   private assetService = inject(AssetService);
+  private sanitizer = inject(DomSanitizer);
+
+  @ViewChild('pdfViewer') pdfViewer: ElementRef<HTMLIFrameElement> | undefined;
 
   // Inject PLATFORM_ID to check if we're in browser
   private isBrowser: boolean;
@@ -42,9 +46,21 @@ export class FilesComponent implements OnInit {
   allFiles: FileItem[] = [];
   filteredFiles: FileItem[] = [];
 
-  // Delete modal
+  // Download & Delete modal
+  showDownloadModal: boolean = false;
   showDeleteModal: boolean = false;
+  fileToDownload: FileItem | null = null;
   fileToDelete: FileItem | null = null;
+
+  showDownloadSuccess: boolean = false;
+  downloadedFileName: string = '';
+
+  // PDF Viewer modal
+  showPdfViewer: boolean = false;
+  currentPdfUrl: SafeResourceUrl | null = null;
+  currentPdfName: string = '';
+  currentPdfFile: FileItem | null = null;
+  isLoadingPdf: boolean = false;
 
   ngOnInit(): void {
     // Only access localStorage in the browser
@@ -58,6 +74,10 @@ export class FilesComponent implements OnInit {
     // Load files from API
     this.loadFiles();
   }
+
+  ngAfterViewInit(): void {
+  }
+
 
   loadFiles(): void {
     this.assetService.getAllAssets().subscribe({
@@ -111,6 +131,63 @@ export class FilesComponent implements OnInit {
     this.router.navigate(['/upload']);
   }
 
+  // Downlad file confirmation
+  confirmDownload(file: FileItem): void {
+    this.fileToDownload = file;
+    console.log('Downloading file:', file.name);
+    this.showDownloadModal = true;
+  
+  }
+
+  cancelDownload(): void {
+    this.showDownloadModal = false;
+    this.fileToDownload = null;
+  }
+
+  downloadFile(): void {
+    console.log('Downloading file inside the method downloadFile:', this.fileToDownload?.name);
+    console.log('Id:', this.fileToDownload?.id);
+    
+    // Only proceed in browser environment and if file is selected
+    if (!this.isBrowser || !this.fileToDownload) return;
+    
+    // Store a local reference to the file
+    const fileToDownload = this.fileToDownload;
+
+    this.assetService.downloadAsset(fileToDownload.id).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileToDownload.name; // Use the local reference instead
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        a.remove();
+        
+        // Show success notification
+        this.downloadedFileName = fileToDownload.name;
+        this.showDownloadSuccess = true;
+        
+        // Auto-hide notification after 3 seconds
+        setTimeout(() => {
+          this.showDownloadSuccess = false;
+        }, 3000);
+      },
+      error: (error) => {
+        console.error('Error downloading file:', error);
+      }
+    });
+    
+ 
+    this.showDownloadModal = false;
+    this.fileToDownload = null;
+  }
+  
+  closeDownloadSuccess(): void {
+    this.showDownloadSuccess = false;
+  }
+
   // Delete file confirmation
   confirmDelete(file: FileItem): void {
     this.fileToDelete = file;
@@ -145,29 +222,41 @@ export class FilesComponent implements OnInit {
 
   // View file
   viewFile(file: FileItem): void {
-    // Only proceed in browser environment
     if (!this.isBrowser) return;
+    
+    this.isLoadingPdf = true;
+    this.currentPdfFile = file;
+    this.currentPdfName = file.name;
+    this.showPdfViewer = true;
 
-    this.assetService.downloadAsset(file.id).subscribe(blob => {
-      const url = window.URL.createObjectURL(blob);
-      window.open(url, '_blank');
+    this.assetService.downloadAsset(file.id).subscribe({
+      next: (blob) => {
+        // Create object URL from blob
+        const url = window.URL.createObjectURL(blob);
+        this.currentPdfUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
+        this.isLoadingPdf = false;
+      },
+      error: (error) => {
+        console.error('Error loading PDF:', error);
+        this.isLoadingPdf = false;
+        this.closePdfViewer();
+      }
     });
   }
 
-  // Download file
-  downloadFile(file: FileItem): void {
-    // Only proceed in browser environment
-    if (!this.isBrowser) return;
+  closePdfViewer(): void {
+    if (this.currentPdfUrl && typeof this.currentPdfUrl === 'string') {
+      URL.revokeObjectURL(this.currentPdfUrl);
+    }
+    this.showPdfViewer = false;
+    this.currentPdfUrl = null;
+    this.currentPdfName = '';
+    this.currentPdfFile = null;
+  }
 
-    this.assetService.downloadAsset(file.id).subscribe(blob => {
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = file.name;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      a.remove();
-    });
+  // Download the currently viewed PDF
+  downloadCurrentPdf(): void {
+    if (!this.currentPdfFile) return;
+    this.confirmDownload(this.currentPdfFile);
   }
 }

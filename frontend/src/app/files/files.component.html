@@ -46,10 +46,10 @@
         <p class="file-details">{{ file.size }} • {{ file.uploadDate }}</p>
       </div>
       <div class="file-actions">
-        <button class="action-btn view-btn" aria-label="View file">
+        <button class="action-btn view-btn" aria-label="View file" (click)="viewFile(file)">
           <i class="view-file-icon"></i>
         </button>
-        <button class="action-btn download-btn" aria-label="Download file">
+        <button class="action-btn download-btn" aria-label="Download file" (click)="confirmDownload(file)">
           <i class="download-icon"></i>
         </button>
         <button class="action-btn delete-btn" aria-label="Delete file" (click)="confirmDelete(file)">
@@ -70,6 +70,32 @@
     </div>
   </div>
 
+  <!-- Download confirmation modal -->
+  <div class="modal" *ngIf="showDownloadModal">
+    <div class="modal-content">
+      <h3>Download File</h3>
+      <p>Are you sure you want to download <strong>{{ fileToDownload?.name }}</strong>?</p>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" (click)="cancelDownload()">Cancel</button>
+        <button class="btn btn-primary" (click)="downloadFile()">Download</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Download success notification -->
+  <div class="notification success-notification" *ngIf="showDownloadSuccess">
+    <div class="notification-content">
+      <i class="success-icon"></i>
+      <div class="notification-message">
+        <h4>Download Successful</h4>
+        <p>{{ downloadedFileName }} has been downloaded successfully.</p>
+      </div>
+      <button class="close-notification" (click)="closeDownloadSuccess()">
+        <i class="close-icon"></i>
+      </button>
+    </div>
+  </div>
+
   <!-- Delete confirmation modal -->
   <div class="modal" *ngIf="showDeleteModal">
     <div class="modal-content">
@@ -81,5 +107,46 @@
       </div>
     </div>
   </div>
-  <div class="modal-backdrop" *ngIf="showDeleteModal" (click)="cancelDelete()"></div>
+  
+   <!-- Modal backdrop -->
+   <div class="modal-backdrop" *ngIf="showDeleteModal || showDownloadModal" (click)="cancelDelete()"></div>
+  
+   <!-- PDF Viewer Modal -->
+   <div class="pdf-modal" *ngIf="showPdfViewer">
+     <div class="pdf-modal-content">
+       <div class="pdf-modal-header">
+         <h3 class="pdf-title">{{ currentPdfName }}</h3>
+         <div class="pdf-actions">
+           <button class="pdf-action-btn" (click)="downloadCurrentPdf()" title="Download PDF">
+             <i class="pdf-download-icon"></i>
+           </button>
+           <button class="pdf-close-btn" (click)="closePdfViewer()" title="Close">
+             <i class="pdf-close-icon"></i>
+           </button>
+         </div>
+       </div>
+       <div class="pdf-modal-body">
+         <!-- Loading indicator -->
+         <div class="pdf-loading" *ngIf="isLoadingPdf">
+           <div class="pdf-loading-spinner"></div>
+           <p>Loading PDF...</p>
+         </div>
+         
+         <!-- PDF Viewer -->
+         <iframe 
+           #pdfViewer
+           class="pdf-iframe" 
+           [src]="currentPdfUrl" 
+           *ngIf="currentPdfUrl && !isLoadingPdf"
+           frameborder="0" 
+           width="100%" 
+           height="100%">
+         </iframe>
+       </div>
+     </div>
+   </div>
+   <div class="pdf-modal-backdrop" *ngIf="showPdfViewer" (click)="closePdfViewer()"></div>
 </div>
+
+
+
