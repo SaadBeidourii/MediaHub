@@ -27,14 +27,13 @@ type Asset struct {
 	Path        string    `json:"-"` // Private field, not exposed via API
 	CreatedAt   time.Time `json:"createdAt"`
 	UpdatedAt   time.Time `json:"updatedAt"`
-	// Additional metadata can be added here
 	Metadata map[string]interface{} `json:"metadata,omitempty"`
+	FolderID    *string   `json:"folderId,omitempty"`
 }
 
 // AssetCreateRequest represents the request to create a new asset
 type AssetCreateRequest struct {
 	Name string `json:"name" form:"name" binding:"required"`
-	// Other fields as needed
 }
 
 // AssetResponse represents the response after asset creation

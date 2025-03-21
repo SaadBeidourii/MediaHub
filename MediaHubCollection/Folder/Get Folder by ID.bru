@@ -1,0 +1,15 @@
+meta {
+  name: Get Folder by ID
+  type: http
+  seq: 3
+}
+
+get {
+  url: http://localhost:8080/api/folders/{{folder-id}}
+  body: none
+  auth: none
+}
+
+vars:pre-request {
+  folder-id: 2a6548b7-5c6a-4c58-9f03-5a1fdc5470e2
+}
