@@ -1,0 +1,279 @@
+
+<div class="files-container">
+  <!-- Header section -->
+  <div class="files-header">
+    <div class="header-title">
+      <h1>Files & Folders</h1>
+      <p class="subtitle">Manage your files and folders</p>
+    </div>
+    <div class="header-actions">
+      <div class="view-options">
+        <button
+          class="view-btn"
+          [class.active]="viewMode === 'grid'"
+          (click)="setViewMode('grid')"
+          aria-label="Grid view">
+          <i class="grid-icon"></i>
+        </button>
+        <button
+          class="view-btn"
+          [class.active]="viewMode === 'list'"
+          (click)="setViewMode('list')"
+          aria-label="List view">
+          <i class="list-icon"></i>
+        </button>
+      </div>
+      <button class="btn btn-primary" (click)="openNewFolderModal()">
+        <i class="new-folder-icon"></i>
+        New Folder
+      </button>
+      <button class="btn btn-primary" (click)="navigateToUpload()">
+        <i class="upload-icon"></i>
+        Upload
+      </button>
+    </div>
+  </div>
+
+  <!-- Breadcrumb navigation -->
+  <div class="breadcrumb-nav">
+    <button class="breadcrumb-item root" (click)="navigateToRoot()">
+      <i class="root-icon">/</i>
+    </button>
+    <i class="breadcrumb-separator" *ngIf="breadcrumbs.length > 0"></i>
+    <ng-container *ngFor="let folder of breadcrumbs; let last = last; let i = index">
+      <button 
+        class="breadcrumb-item" 
+        [class.active]="last" 
+        (click)="navigateToFolder(folder.id)">
+        <span>{{ folder.name }}</span>
+      </button>
+      <i class="breadcrumb-separator" *ngIf="!last"></i>
+    </ng-container>
+  </div>
+
+  <!-- Search section -->
+  <div class="search-container">
+    <div class="search-input">
+      <i class="search-icon"></i>
+      <input
+        type="text"
+        placeholder="Search in current location..."
+        [(ngModel)]="searchQuery"
+        (input)="onSearch()">
+    </div>
+  </div>
+
+  <!-- Loading state -->
+  <div class="loading-container" *ngIf="isLoading">
+    <div class="loading-spinner"></div>
+    <p>Loading content...</p>
+  </div>
+
+  <!-- Error message -->
+  <div class="error-message" *ngIf="errorMessage">
+    <i class="error-icon"></i>
+    <p>{{ errorMessage }}</p>
+  </div>
+
+  <!-- Content - Folders and Files combined -->
+  <div class="content-grid" [class.list-view]="viewMode === 'list'" *ngIf="!isLoading && !errorMessage">
+    <!-- Folders -->
+    <app-folder-card 
+      *ngFor="let folder of filteredFolders"
+      [folder]="folder"
+      (navigate)="navigateToFolder($event)"
+      (delete)="confirmDeleteFolder($event)"
+      (move)="openMoveModal('folder', $event.id, $event.name)">
+    </app-folder-card>
+
+    <!-- Files -->
+    <app-file-card
+      *ngFor="let asset of filteredAssets"
+      [asset]="asset"
+      [inFolderView]="true"
+      (view)="viewFile($event)"
+      (download)="downloadFile($event)"
+      (delete)="confirmDeleteFile($event)"
+      (move)="openMoveModal('asset', $event.id, $event.name)">
+    </app-file-card>
+
+    <!-- Empty state -->
+    <div class="empty-state" *ngIf="filteredFolders.length === 0 && filteredAssets.length === 0">
+      <div class="empty-icon">
+        <i class="empty-folder-icon"></i>
+      </div>
+      <h3>This location is empty</h3>
+      <p *ngIf="searchQuery">No items match your search criteria. Try a different search term.</p>
+      <p *ngIf="!searchQuery">Create folders or upload files to get started.</p>
+      <div class="empty-actions">
+        <button class="btn btn-primary" (click)="openNewFolderModal()">Create Folder</button>
+        <button class="btn btn-secondary" (click)="navigateToUpload()">Upload File</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- New Folder Modal -->
+  <div class="modal" *ngIf="showNewFolderModal">
+    <div class="modal-content">
+      <h3>Create New Folder</h3>
+      <div class="modal-form">
+        <label for="folderName">Folder Name</label>
+        <input 
+          type="text" 
+          id="folderName" 
+          [(ngModel)]="newFolderName" 
+          placeholder="Enter folder name" 
+          [disabled]="isCreatingFolder">
+      </div>
+      <div class="modal-actions">
+        <button 
+          class="btn btn-secondary" 
+          (click)="showNewFolderModal = false" 
+          [disabled]="isCreatingFolder">
+          Cancel
+        </button>
+        <button 
+          class="btn btn-primary" 
+          (click)="createFolder()" 
+          [disabled]="!newFolderName.trim() || isCreatingFolder">
+          <span *ngIf="!isCreatingFolder">Create</span>
+          <span *ngIf="isCreatingFolder">Creating...</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Download confirmation modal -->
+  <div class="modal" *ngIf="showDownloadModal">
+    <div class="modal-content">
+      <h3>Download File</h3>
+      <p>Are you sure you want to download <strong>{{ fileToDownload?.name }}</strong>?</p>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" (click)="cancelDownload()">Cancel</button>
+        <button class="btn btn-primary" (click)="downloadSelectedFile()">Download</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Download success notification -->
+  <div class="notification success-notification" *ngIf="showDownloadSuccess">
+    <div class="notification-content">
+      <i class="success-icon"></i>
+      <div class="notification-message">
+        <h4>Download Successful</h4>
+        <p>{{ downloadedFileName }} has been downloaded successfully.</p>
+      </div>
+      <button class="close-notification" (click)="closeDownloadSuccess()">
+        <i class="close-icon"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Move Item Modal -->
+  <div class="modal" *ngIf="showMoveModal">
+    <div class="modal-content">
+      <h3>Move {{ itemToMove?.type === 'folder' ? 'Folder' : 'File' }}</h3>
+      <p>Select a destination folder for <strong>{{ itemToMove?.name }}</strong></p>
+      
+      <div class="modal-form">
+        <div class="folder-select">
+          <div class="folder-option" [class.selected]="targetFolderId === null" (click)="targetFolderId = null">
+            <i class="root-folder-icon"></i>
+            <span>Root folder</span>
+          </div>
+          <div 
+            class="folder-option" 
+            *ngFor="let folder of availableFolders" 
+            [class.selected]="targetFolderId === folder.id"
+            (click)="targetFolderId = folder.id">
+            <i class="folder-icon-small"></i>
+            <span>{{ folder.name }}</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-actions">
+        <button class="btn btn-secondary" (click)="showMoveModal = false">
+          Cancel
+        </button>
+        <button class="btn btn-primary" (click)="moveItem()">
+          Move
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete File Confirmation Modal -->
+  <div class="modal" *ngIf="showDeleteFileModal">
+    <div class="modal-content">
+      <h3>Delete File</h3>
+      <p>Are you sure you want to delete <strong>{{ fileToDelete?.name }}</strong>? This action cannot be undone.</p>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" (click)="cancelDeleteFile()">Cancel</button>
+        <button class="btn btn-danger" (click)="deleteConfirmedFile()">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Folder Confirmation Modal -->
+  <div class="modal" *ngIf="showDeleteFolderModal">
+    <div class="modal-content">
+      <h3>Delete Folder</h3>
+      <p>Are you sure you want to delete <strong>{{ folderToDelete?.name }}</strong>?</p>
+      <p class="warning-text">This will permanently delete the folder and all its contents. This action cannot be undone.</p>
+      
+      <div class="modal-actions">
+        <button class="btn btn-secondary" (click)="showDeleteFolderModal = false">
+          Cancel
+        </button>
+        <button class="btn btn-danger" (click)="deleteFolder()">
+          Delete
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PDF Viewer Modal -->
+  <div class="pdf-modal" *ngIf="showPdfViewer">
+    <div class="pdf-modal-content">
+      <div class="pdf-modal-header">
+        <h3 class="pdf-title">{{ currentPdfName }}</h3>
+        <div class="pdf-actions">
+          <button class="pdf-action-btn" (click)="downloadCurrentPdf()" title="Download PDF">
+            <i class="pdf-download-icon"></i>
+          </button>
+          <button class="pdf-close-btn" (click)="closePdfViewer()" title="Close">
+            <i class="pdf-close-icon"></i>
+          </button>
+        </div>
+      </div>
+      <div class="pdf-modal-body">
+        <!-- Loading indicator -->
+        <div class="pdf-loading" *ngIf="isLoadingPdf">
+          <div class="pdf-loading-spinner"></div>
+          <p>Loading PDF...</p>
+        </div>
+        
+        <!-- PDF Viewer -->
+        <iframe 
+          #pdfViewer
+          class="pdf-iframe" 
+          [src]="currentPdfUrl" 
+          *ngIf="currentPdfUrl && !isLoadingPdf"
+          frameborder="0" 
+          type="application/pdf"
+          width="100%" 
+          height="100%">
+        </iframe>
+      </div>
+    </div>
+  </div>
+  <div class="pdf-modal-backdrop" *ngIf="showPdfViewer" (click)="closePdfViewer()"></div>
+
+  <!-- Modal backdrop for all modals -->
+  <div class="modal-backdrop" 
+    *ngIf="showNewFolderModal || showMoveModal || showDeleteFolderModal || showDeleteFileModal || showDownloadModal" 
+    (click)="closeAllModals()">
+  </div>
+  <div class="pdf-modal-backdrop" *ngIf="showPdfViewer" (click)="closePdfViewer()"></div>
+</div>

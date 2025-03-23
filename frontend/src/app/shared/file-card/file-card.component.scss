@@ -1,0 +1,220 @@
+// frontend/src/app/shared/file-card/file-card.component.scss
+$file-card-bg: #2a2a2a;
+$text-primary: #ffffff;
+$text-secondary: rgba(255, 255, 255, 0.7);
+$transition-speed: 0.2s;
+$border-radius: 12px;
+
+.file-card {
+  background-color: $file-card-bg;
+  border-radius: $border-radius;
+  overflow: hidden;
+  transition: transform $transition-speed;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1.5rem 1rem;
+
+  &:hover {
+    transform: translateY(-3px);
+
+    .file-actions {
+      opacity: 1;
+    }
+  }
+
+  .file-preview {
+    width: 80px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+
+    .pdf-icon {
+      display: inline-block;
+      width: 64px;
+      height: 64px;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-size: contain;
+      background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="rgba(255,255,255,0.7)"><path d="M20 2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-8.5 7.5c0 .83-.67 1.5-1.5 1.5H9v2H7.5V7H10c.83 0 1.5.67 1.5 1.5v1zm5 2c0 .83-.67 1.5-1.5 1.5h-2.5V7H15c.83 0 1.5.67 1.5 1.5v3zm4-3H19v1h1.5V11H19v2h-1.5V7h3v1.5zM9 9.5h1v-1H9v1zM4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm10 5.5h1v-3h-1v3z"/></svg>');
+    }
+  }
+
+  .file-info {
+    text-align: center;
+    width: 100%;
+    margin-bottom: 1rem;
+
+    .file-name {
+      font-size: 1rem;
+      font-weight: 500;
+      margin: 0 0 0.5rem 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .file-details {
+      color: $text-secondary;
+      font-size: 0.75rem;
+      margin: 0;
+    }
+  }
+
+  .file-actions {
+    display: flex;
+    gap: 0.5rem;
+    transition: opacity $transition-speed;
+    margin-top: auto;
+    opacity: 0;
+
+    .action-btn {
+      background-color: rgba(255, 255, 255, 0.1);
+      border: none;
+      border-radius: 50%;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background-color $transition-speed;
+
+      &:hover {
+        background-color: rgba(255, 255, 255, 0.2);
+      }
+
+      &.delete-btn:hover {
+        background-color: rgba(255, 77, 79, 0.2);
+      }
+
+      i {
+        display: inline-block;
+        width: 18px;
+        height: 18px;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-size: contain;
+      }
+
+      .view-file-icon {
+        background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="rgba(255,255,255,0.7)"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>');
+      }
+
+      .move-icon {
+        background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="rgba(255,255,255,0.7)"><path d="M10 9h4V6h3l-5-5-5 5h3v3zm-1 1H6V7l-5 5 5 5v-3h3v-4zm14 2l-5-5v3h-3v4h3v3l5-5zm-9 3h-4v3H7l5 5 5-5h-3v-3z"/></svg>');
+      }
+
+      .download-icon {
+        background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="rgba(255,255,255,0.7)"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>');
+      }
+
+      .delete-icon {
+        background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="rgba(255,255,255,0.7)"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>');
+      }
+    }
+  }
+}
+
+/* Add these CSS fixes to your file-explorer.component.scss */
+
+/* PDF Viewer Modal - Updated Styles */
+.pdf-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1100;
+    padding: 20px;
+}
+
+.pdf-modal-content {
+    background-color: #1e1e1e;
+    border-radius: 12px;
+    width: 90%;
+    height: 90%;
+    max-width: 1200px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+    z-index: 1101;
+    animation: modalFadeIn 0.3s ease;
+    overflow: hidden; /* Ensure content doesn't overflow */
+}
+
+.pdf-modal-body {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+    background-color: #2a2a2a; /* Ensure background is visible */
+    display: flex; /* Use flexbox to ensure iframe fills the container */
+    flex-direction: column;
+}
+
+.pdf-iframe {
+    border: none;
+    flex: 1; 
+    background-color: #2a2a2a;
+    position: relative; 
+    z-index: 1;
+    min-height: 500px; 
+}
+
+
+.pdf-loading {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: #1e1e1e;
+    z-index: 2; 
+}
+
+.pdf-loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 3px solid rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    border-top-color: #3a86ff;
+    animation: spin 1s ease-in-out infinite;
+    margin-bottom: 15px;
+}
+
+
+.pdf-modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8); /* Darker for better contrast */
+    z-index: 1099;
+}
+
+@keyframes modalFadeIn {
+from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}

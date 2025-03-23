@@ -7,8 +7,12 @@ export const routes: Routes = [
     component: HomeComponent
   },
   {
-    path: 'files',
-    loadComponent: () => import('./files/files.component').then(m => m.FilesComponent)
+    path: 'explorer',
+    loadComponent: () => import('./file-explorer/file-explorer.component').then(m => m.FileExplorerComponent)
+  },
+  {
+    path: 'explorer/:id',
+    loadComponent: () => import('./file-explorer/file-explorer.component').then(m => m.FileExplorerComponent)
   },
   {
     path: 'upload',

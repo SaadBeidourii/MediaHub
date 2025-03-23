@@ -1,0 +1,113 @@
+$folder-card-bg: #2a2a2a;
+$text-primary: #ffffff;
+$text-secondary: rgba(255, 255, 255, 0.7);
+$transition-speed: 0.2s;
+$border-radius: 12px;
+
+.folder-card {
+  background-color: $folder-card-bg;
+  border-radius: $border-radius;
+  transition: transform $transition-speed;
+  overflow: hidden;
+  
+  &:hover {
+    transform: translateY(-3px);
+    
+    .folder-actions {
+      opacity: 1;
+    }
+  }
+  
+  .folder-card-content {
+    padding: 1.5rem 1rem 1rem;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .folder-icon {
+    width: 64px;
+    height: 64px;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    .folder-icon-img {
+      display: inline-block;
+      width: 64px;
+      height: 64px;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-size: contain;
+      background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%233a86ff"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg>');
+    }
+  }
+  
+  .folder-details {
+    text-align: center;
+    width: 100%;
+    
+    .folder-name {
+      font-size: 1rem;
+      font-weight: 500;
+      margin: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
+      padding: 0 0.5rem;
+    }
+  }
+  
+  .folder-actions {
+    display: flex;
+    justify-content: center;
+    padding: 0.75rem;
+    background-color: rgba(0, 0, 0, 0.2);
+    opacity: 0;
+    transition: opacity $transition-speed;
+    
+    .action-btn {
+      background: none;
+      border: none;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background-color $transition-speed;
+      color: $text-secondary;
+      margin: 0 0.25rem;
+      
+      &:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+        color: $text-primary;
+      }
+      
+      &.delete-btn:hover {
+        background-color: rgba(255, 77, 79, 0.2);
+      }
+      
+      i {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-size: contain;
+      }
+      
+      .move-icon {
+        background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="rgba(255,255,255,0.7)"><path d="M10 9h4V6h3l-5-5-5 5h3v3zm-1 1H6V7l-5 5 5 5v-3h3v-4zm14 2l-5-5v3h-3v4h3v3l5-5zm-9 3h-4v3H7l5 5 5-5h-3v-3z"/></svg>');
+      }
+      
+      .delete-icon {
+        background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="rgba(255,255,255,0.7)"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>');
+      }
+    }
+  }
+}
