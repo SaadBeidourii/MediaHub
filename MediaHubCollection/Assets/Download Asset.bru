@@ -1,0 +1,15 @@
+meta {
+  name: Download Asset
+  type: http
+  seq: 3
+}
+
+get {
+  url: http://localhost:8080/api/assets/{{asset-id}}/download
+  body: none
+  auth: none
+}
+
+vars:pre-request {
+  asset-id: b5e7b43d-cfd6-4c8b-9ad0-8d2960ba1551
+}

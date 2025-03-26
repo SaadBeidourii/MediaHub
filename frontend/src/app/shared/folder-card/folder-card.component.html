@@ -1,0 +1,18 @@
+<div class="folder-card">
+    <div class="folder-card-content" (click)="onNavigate()">
+      <div class="folder-icon">
+        <i class="folder-icon-img"></i>
+      </div>
+      <div class="folder-details">
+        <h3 class="folder-name">{{ folder.name }}</h3>
+      </div>
+    </div>
+    <div class="folder-actions">
+      <button class="action-btn move-btn" (click)="onMove($event)" title="Move folder">
+        <i class="move-icon"></i>
+      </button>
+      <button class="action-btn delete-btn" (click)="onDelete($event)" title="Delete folder">
+        <i class="delete-icon"></i>
+      </button>
+    </div>
+  </div>

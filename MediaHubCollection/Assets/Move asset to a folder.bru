@@ -1,0 +1,22 @@
+meta {
+  name: Move asset to a folder
+  type: http
+  seq: 6
+}
+
+put {
+  url: http://localhost:8080/api/assets/{{asset-id}}/move
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "folderId": {{folder-id}}
+  }
+}
+
+vars:pre-request {
+  asset-id: b5e7b43d-cfd6-4c8b-9ad0-8d2960ba1551
+  folder-id: 2a6548b7-5c6a-4c58-9f03-5a1fdc5470e2
+}

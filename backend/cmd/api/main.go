@@ -45,6 +45,11 @@ func main() {
 		log.Fatalf("Failed to initialize PostgreSQL asset store: %v", err)
 	}
 
+	folderStore, err := storage.NewPostgresFolderStore(db)
+	if err != nil {
+		log.Fatalf("Failed to initialize PostgreSQL folder store: %v", err)
+	}
+
 	// Initialize the PostgreSQL storage provider for file content
 	storageProvider, err := storage.NewPostgresStorageProvider(db)
 	if err != nil {
@@ -53,9 +58,11 @@ func main() {
 
 	// Initialize services
 	assetService := services.NewAssetService(storageProvider, assetStore)
+	folderService := services.NewFolderService(folderStore, assetStore)
 
 	// Initialize handlers
 	assetHandler := handlers.NewAssetHandler(assetService)
+	folderHandler := handlers.NewFolderHandler(folderService)
 
 	// Initialize Gin router
 	router := gin.Default()
@@ -102,9 +109,31 @@ func main() {
 
 			// Delete asset
 			assets.DELETE("/:id", assetHandler.DeleteAsset)
+
+			// Move asset to folder
+			assets.PUT("/:id/move", folderHandler.MoveAsset)
 		}
 
-		// Collections endpoints can be added here when needed
+		folders := api.Group("/folders")
+		{
+			// Create a new folder
+			folders.POST("/", folderHandler.CreateFolder)
+
+			// Get all folders
+			folders.GET("/", folderHandler.GetAllFolders)
+
+			// Get folder details
+			folders.GET("/:id", folderHandler.GetFolder)
+
+			// Get folder contents (assets)
+			folders.GET("/:id/contents", folderHandler.GetFolderContents)
+
+			// Update folder
+			folders.PUT("/:id", folderHandler.UpdateFolder)
+
+			// Delete folder
+			folders.DELETE("/:id", folderHandler.DeleteFolder)
+		}
 	}
 
 	// Start the server

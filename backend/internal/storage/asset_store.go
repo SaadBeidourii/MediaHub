@@ -17,4 +17,10 @@ type AssetStore interface {
 
 	// Delete removes an asset from the store
 	Delete(id string) error
+
+	// GetByFolderID retrieves all assets in a folder
+	GetByFolderID(folderID *string) ([]*models.Asset, error)
+
+	// Move asset to a different folder
+	MoveAsset(assetID string, folderID *string) error
 }

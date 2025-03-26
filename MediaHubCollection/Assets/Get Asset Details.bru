@@ -1,0 +1,15 @@
+meta {
+  name: Get Asset Details
+  type: http
+  seq: 4
+}
+
+get {
+  url: http://localhost:8080/api/assets/{{asset-id}}
+  body: none
+  auth: none
+}
+
+vars:pre-request {
+  asset-id: b6cc09c6-871b-434e-8eb9-29e45a6ed982
+}

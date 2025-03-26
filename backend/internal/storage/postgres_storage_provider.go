@@ -17,7 +17,6 @@ type PostgresStorageProvider struct {
 
 // NewPostgresStorageProvider creates a new PostgresStorageProvider
 func NewPostgresStorageProvider(db *sql.DB) (*PostgresStorageProvider, error) {
-	// Create the file_content table if it doesn't exist
 	_, err := db.Exec(`
 		CREATE TABLE IF NOT EXISTS file_contents (
 			asset_id VARCHAR(36) PRIMARY KEY,
