@@ -9,6 +9,7 @@ import (
 
 	"github.com/SaadBeidourii/MediaHub.git/internal/models"
 	"github.com/SaadBeidourii/MediaHub.git/internal/storage"
+	"github.com/SaadBeidourii/MediaHub.git/pkg/validator"
 	"github.com/google/uuid"
 )
 
@@ -26,50 +27,71 @@ func NewAssetService(storageProvider storage.StorageProvider, assetStore storage
 	}
 }
 
-// CreatePDFAsset handles creating a new PDF asset
-func (s *AssetService) CreatePDFAsset(fileHeader *multipart.FileHeader) (*models.Asset, error) {
-    // Open the uploaded file
-    file, err := fileHeader.Open()
-    if err != nil {
-        return nil, fmt.Errorf("failed to open uploaded file: %w", err)
-    }
-    defer file.Close()
+// ////////////////// * ASSET CREATION * /////////////////////////
+func (s *AssetService) CreateAsset(fileHeader *multipart.FileHeader, assetType models.AssetType) (*models.Asset, error) {
+	// Open the uploaded file
+	file, err := fileHeader.Open()
+	if err != nil {
+		return nil, fmt.Errorf("failed to open uploaded file: %w", err)
+	}
+	defer file.Close()
 
-    // Generate a unique ID for the asset
-    assetID := uuid.New().String()
+	assetID := uuid.New().String()
 
-    // Create a new asset
-    now := time.Now()
-    asset := &models.Asset{
-        ID:          assetID,
-        Name:        fileHeader.Filename,
-        Type:        models.AssetTypePDF,
-        Size:        fileHeader.Size,
-        ContentType: fileHeader.Header.Get("Content-Type"),
-        CreatedAt:   now,
-        UpdatedAt:   now,
-        Metadata:    make(map[string]interface{}),
-        Path:        fmt.Sprintf("db://%s", assetID),
-    }
+	// Create a new asset
+	now := time.Now()
+	asset := &models.Asset{
+		ID:          assetID,
+		Name:        fileHeader.Filename,
+		Type:        assetType,
+		Size:        fileHeader.Size,
+		ContentType: fileHeader.Header.Get("Content-Type"),
+		CreatedAt:   now,
+		UpdatedAt:   now,
+		Metadata:    make(map[string]interface{}),
+		Path:        fmt.Sprintf("db://%s", assetID),
+	}
 
-    // Add file extension to metadata
-    asset.Metadata["extension"] = filepath.Ext(fileHeader.Filename)
+	// Add file extension to metadata
+	asset.Metadata["extension"] = filepath.Ext(fileHeader.Filename)
 
-    // FIRST: Save the asset metadata to the database
-    if err := s.assetStore.Save(asset); err != nil {
-        return nil, fmt.Errorf("failed to save asset metadata: %w", err)
-    }
+	// FIRST: Save the asset metadata to the database
+	if err := s.assetStore.Save(asset); err != nil {
+		return nil, fmt.Errorf("failed to save asset metadata: %w", err)
+	}
 
-    // THEN: Save the file content
-    _, err = s.storage.Save(file, asset)
-    if err != nil {
-        // If file save fails, clean up the asset metadata
-        s.assetStore.Delete(assetID)
-        return nil, fmt.Errorf("failed to save file: %w", err)
-    }
+	// THEN: Save the file content
+	_, err = s.storage.Save(file, asset)
+	if err != nil {
+		// If file save fails, clean up the asset metadata
+		s.assetStore.Delete(assetID)
+		return nil, fmt.Errorf("failed to save file: %w", err)
+	}
 
-    return asset, nil
+	return asset, nil
 }
+
+//////////////////// * PDF * /////////////////////////
+
+// CreatePDFAsset creates a PDF asset
+func (s *AssetService) CreatePDFAsset(fileHeader *multipart.FileHeader) (*models.Asset, error) {
+	if err := validator.ValidatePDFFile(fileHeader); err != nil {
+		return nil, err
+	}
+	return s.CreateAsset(fileHeader, models.AssetTypePDF)
+}
+
+//////////////////// * EPUB * /////////////////////////
+
+// CreateEPUBAsset creates an EPUB asset
+func (s *AssetService) CreateEPUBAsset(fileHeader *multipart.FileHeader) (*models.Asset, error) {
+	if err := validator.ValidateEPUBFile(fileHeader); err != nil {
+		return nil, err
+	}
+	return s.CreateAsset(fileHeader, models.AssetTypeEPUB)
+}
+
+//////////////////// * CORE * /////////////////////////
 
 // GetAsset retrieves an asset by ID
 func (s *AssetService) GetAsset(assetID string) (*models.Asset, error) {

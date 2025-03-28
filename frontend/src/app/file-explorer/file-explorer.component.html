@@ -289,10 +289,20 @@
   </div>
   <div class="pdf-modal-backdrop" *ngIf="showPdfViewer" (click)="closePdfViewer()"></div>
 
+  <!-- EPUB Viewer Modal -->
+  <div class="epub-modal" *ngIf="showEpubViewer">
+    <app-epub-viewer 
+      [asset]="currentEpubFile!" 
+      (close)="closeEpubViewer()" 
+      (download)="downloadFile($event)">
+    </app-epub-viewer>
+  </div>
+
   <!-- Modal backdrop for all modals -->
   <div class="modal-backdrop" 
-    *ngIf="showNewFolderModal || showMoveModal || showDeleteFolderModal || showDeleteFileModal || showDownloadModal" 
+    *ngIf="showNewFolderModal || showMoveModal || showDeleteFolderModal || showDeleteFileModal || showDownloadModal || showPdfViewer || showEpubViewer" 
     (click)="closeAllModals()">
   </div>
   <div class="pdf-modal-backdrop" *ngIf="showPdfViewer" (click)="closePdfViewer()"></div>
+  <div class="modal-backdrop" *ngIf="showEpubViewer" (click)="closeEpubViewer()"></div>
 </div>

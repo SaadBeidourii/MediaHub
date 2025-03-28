@@ -18,6 +18,47 @@ export class AssetService {
   private http = inject(HttpClient);
   private apiUrl = environment.apiUrl;
 
+
+  // Upload PDF file
+  uploadPdfFile(file: File, folderId?: string): Observable<HttpEvent<AssetResponse>> {
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    if (folderId) {
+      formData.append('folderId', folderId);
+    }
+
+    return this.http.post<AssetResponse>(`${this.apiUrl}/assets/pdf`, formData, {
+      reportProgress: true,
+      observe: 'events'
+    }).pipe(
+      catchError(error => {
+        console.error('Error uploading file:', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  // Upload EPUB file
+  uploadEpubFile(file: File, folderId?: string): Observable<HttpEvent<AssetResponse>> {
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    if (folderId) {
+      formData.append('folderId', folderId);
+    }
+
+    return this.http.post<AssetResponse>(`${this.apiUrl}/assets/epub`, formData, {
+      reportProgress: true,
+      observe: 'events'
+    }).pipe(
+      catchError(error => {
+        console.error('Error uploading file:', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
   // Get all assets
   getAllAssets(): Observable<Asset[]> {
     return this.http.get<AssetsListResponse>(`${this.apiUrl}/assets`)
@@ -62,26 +103,6 @@ export class AssetService {
           return throwError(() => error);
         })
       );
-  }
-
-  // Upload PDF file
-  uploadPdfFile(file: File, folderId?: string): Observable<HttpEvent<AssetResponse>> {
-    const formData = new FormData();
-    formData.append('file', file);
-    
-    if (folderId) {
-      formData.append('folderId', folderId);
-    }
-
-    return this.http.post<AssetResponse>(`${this.apiUrl}/assets/pdf`, formData, {
-      reportProgress: true,
-      observe: 'events'
-    }).pipe(
-      catchError(error => {
-        console.error('Error uploading file:', error);
-        return throwError(() => error);
-      })
-    );
   }
 
   // Download asset

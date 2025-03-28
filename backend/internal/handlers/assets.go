@@ -10,16 +10,27 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// AssetHandler handles HTTP requests for assets
+
 type AssetHandler struct {
-	assetService *services.AssetService
+	assetService  *services.AssetService
+	mediaHandlers map[models.AssetType]MediaTypeHandler
 }
 
-// NewAssetHandler creates a new AssetHandler
+type MediaTypeHandler interface {
+	ValidateFile(fileHeader *gin.Context) error
+	HandleUpload(c *gin.Context, assetService *services.AssetService) (*models.Asset, error)
+}
+
+
 func NewAssetHandler(assetService *services.AssetService) *AssetHandler {
-	return &AssetHandler{
-		assetService: assetService,
+	handler := &AssetHandler{
+		assetService:  assetService,
+		mediaHandlers: make(map[models.AssetType]MediaTypeHandler),
 	}
+	handler.mediaHandlers[models.AssetTypePDF] = NewPDFHandler()
+	handler.mediaHandlers[models.AssetTypeEPUB] = NewEPUBHandler()
+
+	return handler
 }
 
 // ListAssets handles GET /api/assets
@@ -38,10 +49,17 @@ func (h *AssetHandler) ListAssets(c *gin.Context) {
 	})
 }
 
-// UploadPDF handles POST /api/assets/pdf
-func (h *AssetHandler) UploadPDF(c *gin.Context) {
-	// Get the file from the request
-	file, err := c.FormFile("file")
+// HandleUpload is a generic upload handler for any media type
+func (h *AssetHandler) HandleUpload(c *gin.Context, assetType models.AssetType) {
+	mediaHandler, exists := h.mediaHandlers[assetType]
+	if !exists {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": fmt.Sprintf("Unsupported media type: %s", assetType),
+		})
+		return
+	}
+
+	_, err := c.FormFile("file")
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "No file provided or invalid file",
@@ -49,37 +67,25 @@ func (h *AssetHandler) UploadPDF(c *gin.Context) {
 		return
 	}
 
-	// Validate the file
-	if err := validator.ValidatePDFFile(file); err != nil {
-		var statusCode int
-		var message string
+	asset, err := mediaHandler.HandleUpload(c, h.assetService)
+	if err != nil {
+		errorStatusCode := http.StatusInternalServerError
+		errorMessage := "Failed to process file: " + err.Error()
 
 		switch err {
 		case validator.ErrFileTooLarge:
-			statusCode = http.StatusRequestEntityTooLarge
-			message = fmt.Sprintf("File too large. Maximum size allowed is %d bytes", validator.MaxPDFSize)
+			errorStatusCode = http.StatusRequestEntityTooLarge
+			errorMessage = "File too large. Maximum size exceeded."
 		case validator.ErrInvalidFileType:
-			statusCode = http.StatusBadRequest
-			message = "Invalid file type. Only PDF files are allowed"
+			errorStatusCode = http.StatusBadRequest
+			errorMessage = fmt.Sprintf("Invalid file type. Only %s files are allowed.", assetType)
 		case validator.ErrEmptyFile:
-			statusCode = http.StatusBadRequest
-			message = "Empty file"
-		default:
-			statusCode = http.StatusInternalServerError
-			message = "Error validating file: " + err.Error()
+			errorStatusCode = http.StatusBadRequest
+			errorMessage = "Empty file"
 		}
 
-		c.JSON(statusCode, gin.H{
-			"error": message,
-		})
-		return
-	}
-
-	// Create the asset
-	asset, err := h.assetService.CreatePDFAsset(file)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to process file: " + err.Error(),
+		c.JSON(errorStatusCode, gin.H{
+			"error": errorMessage,
 		})
 		return
 	}
@@ -89,6 +95,16 @@ func (h *AssetHandler) UploadPDF(c *gin.Context) {
 		Asset:  asset,
 		Status: "success",
 	})
+}
+
+// UploadPDF handles POST /api/assets/pdf
+func (h *AssetHandler) UploadPDF(c *gin.Context) {
+	h.HandleUpload(c, models.AssetTypePDF)
+}
+
+// UploadEPUB handles POST /api/assets/epub
+func (h *AssetHandler) UploadEPUB(c *gin.Context) {
+	h.HandleUpload(c, models.AssetTypeEPUB)
 }
 
 // GetAsset handles GET /api/assets/:id

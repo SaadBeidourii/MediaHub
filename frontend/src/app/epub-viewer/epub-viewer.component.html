@@ -1,0 +1,86 @@
+<div class="epub-viewer-container">
+    <!-- Loading Screen -->
+    <div class="epub-loading" *ngIf="isLoading">
+      <div class="epub-loading-spinner"></div>
+      <p>Loading EPUB...</p>
+    </div>
+  
+    <!-- Error Screen -->
+    <div class="epub-error" *ngIf="loadError">
+      <div class="error-icon"></div>
+      <h3>Error Loading EPUB</h3>
+      <p>{{ errorMessage }}</p>
+      <button class="epub-button" (click)="onClose()">Close</button>
+      <button class="epub-button secondary" (click)="onDownload()">Download Instead</button>
+    </div>
+    
+    <!-- EPUB Viewer Header -->
+    <div class="epub-header" *ngIf="!isLoading && !loadError">
+      <div class="epub-title">
+        <h2>{{ bookTitle }}</h2>
+        <p>{{ bookAuthor }}</p>
+      </div>
+  
+      <div class="epub-controls">
+        <button class="epub-control-btn" (click)="toggleToc()" title="Table of Contents">
+          <i class="toc-icon"></i>
+        </button>
+        <button class="epub-control-btn" (click)="decreaseFontSize()" title="Decrease font size">
+          <i class="font-decrease-icon"></i>
+        </button>
+        <button class="epub-control-btn" (click)="increaseFontSize()" title="Increase font size">
+          <i class="font-increase-icon"></i>
+        </button>
+        <button class="epub-control-btn" (click)="onDownload()" title="Download EPUB">
+          <i class="download-icon"></i>
+        </button>
+        <button class="epub-control-btn" (click)="onClose()" title="Close reader">
+          <i class="close-icon"></i>
+        </button>
+      </div>
+    </div>
+  
+    <!-- Table of Contents Sidebar -->
+    <div class="epub-toc" [class.active]="showToc" *ngIf="!isLoading && !loadError">
+      <div class="epub-toc-header">
+        <h3>Table of Contents</h3>
+        <button class="epub-control-btn" (click)="toggleToc()">
+          <i class="close-icon"></i>
+        </button>
+      </div>
+      <div class="epub-toc-content">
+        <div class="toc-item" *ngFor="let item of toc" (click)="navigateToChapter(item.href)">
+          {{ item.label }}
+        </div>
+        <div *ngIf="toc.length === 0" class="toc-empty">
+          No table of contents available
+        </div>
+      </div>
+    </div>
+  
+    <!-- EPUB Content -->
+    <div class="epub-content" *ngIf="!isLoading && !loadError">
+      <div #epubContainer class="epub-container"></div>
+    </div>
+  
+    <!-- EPUB Footer -->
+    <div class="epub-footer" *ngIf="!isLoading && !loadError">
+      <button class="epub-nav-btn prev-btn" (click)="prevPage()" title="Previous page">
+        <i class="prev-icon"></i>
+      </button>
+      
+      <div class="epub-progress">
+        <div class="progress-bar">
+          <div class="progress-fill" [style.width.%]="progress"></div>
+        </div>
+        <div class="progress-text">
+          <span *ngIf="currentChapter" class="chapter-name">{{ currentChapter }}</span>
+          <span class="page-info">{{ currentPage }} / {{ totalPages }}</span>
+        </div>
+      </div>
+      
+      <button class="epub-nav-btn next-btn" (click)="nextPage()" title="Next page">
+        <i class="next-icon"></i>
+      </button>
+    </div>
+  </div>

@@ -6,6 +6,8 @@ $text-secondary: rgba(255, 255, 255, 0.7);
 $accent-color: #3a86ff;
 $error-color: #ff4d4f;
 $success-color: #52c41a;
+$pdf-color: #ff5252;
+$epub-color: #4caf50;
 $border-radius: 12px;
 $transition-speed: 0.2s;
 
@@ -25,7 +27,8 @@ $transition-speed: 0.2s;
   padding: 2rem;
   width: 100%;
   max-width: 800px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(10px);
 }
 
 .upload-title {
@@ -36,8 +39,82 @@ $transition-speed: 0.2s;
 
 .upload-subtitle {
   color: $text-secondary;
-  margin: 0 0 2rem 0;
+  margin: 0 0 1.5rem 0;
   font-size: 1rem;
+}
+
+// File type selector
+.file-type-selector {
+  display: flex;
+  margin-bottom: 1.5rem;
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: $border-radius;
+  padding: 4px;
+  width: fit-content;
+  
+  .file-type-btn {
+    display: flex;
+    align-items: center;
+    padding: 0.6rem 1.2rem;
+    border: none;
+    background: transparent;
+    color: $text-secondary;
+    font-weight: 500;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all $transition-speed ease;
+    gap: 8px;
+    
+    i {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-size: contain;
+    }
+    
+    .pdf-icon {
+      background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="rgba(255,255,255,0.7)"><path d="M20 2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-8.5 7.5c0 .83-.67 1.5-1.5 1.5H9v2H7.5V7H10c.83 0 1.5.67 1.5 1.5v1zm5 2c0 .83-.67 1.5-1.5 1.5h-2.5V7H15c.83 0 1.5.67 1.5 1.5v3zm4-3H19v1h1.5V11H19v2h-1.5V7h3v1.5zM9 9.5h1v-1H9v1zM4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm10 5.5h1v-3h-1v3z"/></svg>');
+    }
+    
+    .epub-icon {
+      background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="rgba(255,255,255,0.7)"><path d="M18 2h-6v7L9.5 7.5 7 9V2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM9 17H7v-2h2v2zm0-4H7v-2h2v2zm0-4H7V7h2v2zm8 8h-7v-2h7v2zm0-4h-7v-2h7v2zm0-4h-7V7h7v2z"/></svg>');
+    }
+    
+    &.active {
+      background-color: rgba(255, 255, 255, 0.1);
+      color: $text-primary;
+      
+      .pdf-icon {
+        background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="rgba(255,255,255,1)"><path d="M20 2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-8.5 7.5c0 .83-.67 1.5-1.5 1.5H9v2H7.5V7H10c.83 0 1.5.67 1.5 1.5v1zm5 2c0 .83-.67 1.5-1.5 1.5h-2.5V7H15c.83 0 1.5.67 1.5 1.5v3zm4-3H19v1h1.5V11H19v2h-1.5V7h3v1.5zM9 9.5h1v-1H9v1zM4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm10 5.5h1v-3h-1v3z"/></svg>');
+      }
+      
+      .epub-icon {
+        background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="rgba(255,255,255,1)"><path d="M18 2h-6v7L9.5 7.5 7 9V2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM9 17H7v-2h2v2zm0-4H7v-2h2v2zm0-4H7V7h2v2zm8 8h-7v-2h7v2zm0-4h-7v-2h7v2zm0-4h-7V7h7v2z"/></svg>');
+      }
+      
+      &[class*="pdf"] {
+        background-color: rgba($pdf-color, 0.15);
+        
+        .pdf-icon {
+          background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="rgba(255,255,255,1)"><path d="M20 2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-8.5 7.5c0 .83-.67 1.5-1.5 1.5H9v2H7.5V7H10c.83 0 1.5.67 1.5 1.5v1zm5 2c0 .83-.67 1.5-1.5 1.5h-2.5V7H15c.83 0 1.5.67 1.5 1.5v3zm4-3H19v1h1.5V11H19v2h-1.5V7h3v1.5zM9 9.5h1v-1H9v1zM4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm10 5.5h1v-3h-1v3z"/></svg>');
+        }
+      }
+      
+      &[class*="epub"] {
+        background-color: rgba($epub-color, 0.15);
+        
+        .epub-icon {
+          background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="rgba(255,255,255,1)"><path d="M18 2h-6v7L9.5 7.5 7 9V2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM9 17H7v-2h2v2zm0-4H7v-2h2v2zm0-4H7V7h2v2zm8 8h-7v-2h7v2zm0-4h-7v-2h7v2zm0-4h-7V7h7v2z"/></svg>');
+        }
+      }
+    }
+    
+    &:hover:not(.active) {
+      background-color: rgba(255, 255, 255, 0.05);
+    }
+  }
 }
 
 .drop-zone {
@@ -48,7 +125,8 @@ $transition-speed: 0.2s;
   cursor: pointer;
   transition: all $transition-speed ease;
   position: relative;
-
+  background-color: rgba(0, 0, 0, 0.1);
+  
   &:hover {
     border-color: rgba(255, 255, 255, 0.3);
     background-color: rgba(255, 255, 255, 0.02);
@@ -90,6 +168,10 @@ $transition-speed: 0.2s;
     font-size: 0.8rem;
     margin-top: 1rem;
     color: rgba(255, 255, 255, 0.5);
+    padding: 4px 12px;
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 20px;
+    display: inline-block;
   }
 
   .select-btn {
@@ -102,9 +184,17 @@ $transition-speed: 0.2s;
     cursor: pointer;
     transition: background-color $transition-speed;
     font-size: 1rem;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 
     &:hover {
       background-color: darken($accent-color, 10%);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    }
+    
+    &:active {
+      transform: translateY(0);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
     }
   }
 
@@ -118,6 +208,7 @@ $transition-speed: 0.2s;
     display: flex;
     align-items: center;
     justify-content: center;
+    margin-bottom: 0.5rem;
   }
 
   .cloud-upload-icon {
@@ -128,6 +219,26 @@ $transition-speed: 0.2s;
     background-repeat: no-repeat;
     background-size: contain;
     background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="rgba(255,255,255,0.7)"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></svg>');
+  }
+  
+  .pdf-upload-icon {
+    display: inline-block;
+    width: 64px;
+    height: 64px;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="rgba(255,255,255,0.7)"><path d="M20 2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-8.5 7.5c0 .83-.67 1.5-1.5 1.5H9v2H7.5V7H10c.83 0 1.5.67 1.5 1.5v1zm5 2c0 .83-.67 1.5-1.5 1.5h-2.5V7H15c.83 0 1.5.67 1.5 1.5v3zm4-3H19v1h1.5V11H19v2h-1.5V7h3v1.5zM9 9.5h1v-1H9v1zM4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm10 5.5h1v-3h-1v3z"/></svg>');
+  }
+  
+  .epub-upload-icon {
+    display: inline-block;
+    width: 64px;
+    height: 64px;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="rgba(255,255,255,0.7)"><path d="M18 2h-6v7L9.5 7.5 7 9V2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM9 17H7v-2h2v2zm0-4H7v-2h2v2zm0-4H7V7h2v2zm8 8h-7v-2h7v2zm0-4h-7v-2h7v2zm0-4h-7V7h7v2z"/></svg>');
   }
 
   .loading-icon {
@@ -166,16 +277,18 @@ $transition-speed: 0.2s;
 .progress-bar {
   width: 100%;
   max-width: 300px;
-  height: 6px;
+  height: 8px;
   background-color: rgba(255, 255, 255, 0.1);
-  border-radius: 3px;
+  border-radius: 4px;
   margin-bottom: 1rem;
   overflow: hidden;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
 
   .progress-bar-fill {
     height: 100%;
     background-color: $accent-color;
     transition: width 0.3s ease;
+    background-image: linear-gradient(90deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.2) 100%);
   }
 }
 
@@ -191,7 +304,18 @@ $transition-speed: 0.2s;
     font-weight: 500;
     cursor: pointer;
     border: none;
-    transition: background-color $transition-speed;
+    transition: all $transition-speed;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    
+    &:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    }
+    
+    &:active {
+      transform: translateY(0);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    }
   }
 
   .primary-btn {
@@ -213,8 +337,34 @@ $transition-speed: 0.2s;
   }
 }
 
+// Add responsive styles
+@media (max-width: 576px) {
+  .upload-card {
+    padding: 1.5rem;
+  }
+  
+  .drop-zone {
+    padding: 2rem 1rem;
+  }
+  
+  .complete-actions {
+    flex-direction: column;
+    width: 100%;
+    
+    .action-btn {
+      width: 100%;
+    }
+  }
+}
+
 // Animation
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+
+// Bounce animation for upload button
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
 }

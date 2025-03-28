@@ -1,4 +1,3 @@
-// frontend/src/app/shared/file-card/file-card.component.ts
 import { Component, Input, Output, EventEmitter, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Asset } from '../../models/asset.model';
@@ -21,8 +20,25 @@ export class FileCardComponent {
   @Output() delete = new EventEmitter<Asset>();
   @Output() move = new EventEmitter<Asset>();
 
+  // Asset type enum for use in the template
+  readonly AssetType = {
+    PDF: 'pdf',
+    EPUB: 'epub'
+  };
+
   get formattedSize(): string {
     return this.assetService.formatFileSize(this.asset.size);
+  }
+
+  get fileIcon(): string {
+    switch (this.asset.type.toLowerCase()) {
+      case this.AssetType.PDF:
+        return 'pdf-icon';
+      case this.AssetType.EPUB:
+        return 'epub-icon';
+      default:
+        return 'document-icon';
+    }
   }
 
   onView(): void {

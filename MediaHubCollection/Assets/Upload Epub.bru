@@ -1,0 +1,19 @@
+meta {
+  name: Upload Epub
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://localhost:8080/api/assets/epub
+  body: multipartForm
+  auth: none
+}
+
+headers {
+  Content-Type: multipart/form-data
+}
+
+body:multipart-form {
+  file: @file(/Users/saadbeidouri/Downloads/accessible_epub_3.epub)
+}

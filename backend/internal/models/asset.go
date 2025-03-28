@@ -13,22 +13,22 @@ var (
 type AssetType string
 
 const (
-	// AssetTypePDF represents a PDF document
-	AssetTypePDF AssetType = "pdf"
+	AssetTypePDF  AssetType = "pdf"
+	AssetTypeEPUB AssetType = "epub"
 )
 
 // Asset represents a media file in the system
 type Asset struct {
-	ID          string    `json:"id"`
-	Name        string    `json:"name"`
-	Type        AssetType `json:"type"`
-	Size        int64     `json:"size"`
-	ContentType string    `json:"contentType"`
-	Path        string    `json:"-"` // Private field, not exposed via API
-	CreatedAt   time.Time `json:"createdAt"`
-	UpdatedAt   time.Time `json:"updatedAt"`
-	Metadata map[string]interface{} `json:"metadata,omitempty"`
-	FolderID    *string   `json:"folderId,omitempty"`
+	ID          string                 `json:"id"`
+	Name        string                 `json:"name"`
+	Type        AssetType              `json:"type"`
+	Size        int64                  `json:"size"`
+	ContentType string                 `json:"contentType"`
+	Path        string                 `json:"-"` // Private field, not exposed via API
+	CreatedAt   time.Time              `json:"createdAt"`
+	UpdatedAt   time.Time              `json:"updatedAt"`
+	Metadata    map[string]interface{} `json:"metadata,omitempty"`
+	FolderID    *string                `json:"folderId,omitempty"`
 }
 
 // AssetCreateRequest represents the request to create a new asset

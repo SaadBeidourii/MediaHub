@@ -18,13 +18,14 @@ import {
 } from '../models/asset.model';
 import { FileCardComponent } from '../shared/file-card/file-card.component';
 import { FolderCardComponent } from '../shared/folder-card/folder-card.component';
+import { EpubViewerComponent } from '../epub-viewer/epub-viewer.component';
 
 @Component({
   selector: 'app-file-explorer',
   templateUrl: './file-explorer.component.html',
   styleUrls: ['./file-explorer.component.scss'],
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, FileCardComponent, FolderCardComponent]
+  imports: [CommonModule, FormsModule, RouterModule, FileCardComponent, FolderCardComponent, EpubViewerComponent]
 })
 export class FileExplorerComponent implements OnInit {
   @ViewChild('pdfViewer') pdfViewer: ElementRef<HTMLIFrameElement> | undefined;
@@ -88,6 +89,10 @@ export class FileExplorerComponent implements OnInit {
   currentPdfFile: Asset | null = null;
   isLoadingPdf: boolean = false;
   currentPdfRawUrl: string | null = null;
+  
+  // EPUB Viewer modal
+  showEpubViewer: boolean = false;
+  currentEpubFile: Asset | null = null;
 
   ngOnInit(): void {
     // Load saved view mode preference
@@ -115,7 +120,6 @@ export class FileExplorerComponent implements OnInit {
         this.assets = response.assets || [];
         this.filteredAssets = [...this.assets];
         
-
         this.loadBreadcrumbs();
         this.isLoading = false;
       },
@@ -238,6 +242,21 @@ export class FileExplorerComponent implements OnInit {
 
   // File operations
   viewFile(asset: Asset): void {
+    // Handle different asset types based on file extension or asset.type
+    const fileType = asset.type?.toLowerCase();
+    
+    if (fileType === 'pdf') {
+      this.viewPdfFile(asset);
+    } else if (fileType === 'epub') {
+      this.viewEpubFile(asset);
+    } else {
+      // Default fallback - just download the file
+      this.downloadFile(asset);
+    }
+  }
+  
+  // View PDF file
+  viewPdfFile(asset: Asset): void {
     this.isLoadingPdf = true;
     this.currentPdfFile = asset;
     this.currentPdfName = asset.name;
@@ -267,6 +286,13 @@ export class FileExplorerComponent implements OnInit {
     });
   }
   
+  // View EPUB file
+  viewEpubFile(asset: Asset): void {
+    console.log('Opening EPUB file:', asset);
+    this.currentEpubFile = asset;
+    this.showEpubViewer = true;
+  }
+  
   // Close PDF viewer
   closePdfViewer(): void {
     // Properly revoke the raw URL
@@ -279,6 +305,12 @@ export class FileExplorerComponent implements OnInit {
     this.currentPdfUrl = null;
     this.currentPdfName = '';
     this.currentPdfFile = null;
+  }
+  
+  // Close EPUB viewer
+  closeEpubViewer(): void {
+    this.showEpubViewer = false;
+    this.currentEpubFile = null;
   }
 
   downloadCurrentPdf(): void {

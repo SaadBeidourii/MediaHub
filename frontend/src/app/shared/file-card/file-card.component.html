@@ -1,10 +1,13 @@
 <div class="file-card">
     <div class="file-preview">
-      <i class="pdf-icon"></i>
+      <i [class]="fileIcon"></i>
     </div>
     <div class="file-info">
       <h3 class="file-name">{{ asset.name }}</h3>
-      <p class="file-details">{{ formattedSize }} • {{ asset.createdAt | date:'MMM d, y' }}</p>
+      <p class="file-details">
+        {{ formattedSize }} • {{ asset.createdAt | date:'MMM d, y' }}
+        <span class="file-type" [class]="asset.type.toLowerCase()">{{ asset.type }}</span>
+      </p>
     </div>
     <div class="file-actions">
       <button class="action-btn view-btn" (click)="onView()" title="View file">

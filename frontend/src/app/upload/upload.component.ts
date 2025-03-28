@@ -2,6 +2,7 @@ import { Component, ElementRef, ViewChild, inject, PLATFORM_ID, Inject } from '@
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
 import { HttpEventType, HttpClientModule } from '@angular/common/http';
+import { FormsModule } from '@angular/forms';
 import { catchError, finalize, tap } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { AssetService } from '../services/asset.service';
@@ -11,7 +12,7 @@ import { AssetService } from '../services/asset.service';
   templateUrl: './upload.component.html',
   styleUrls: ['./upload.component.scss'],
   standalone: true,
-  imports: [CommonModule, HttpClientModule]
+  imports: [CommonModule, HttpClientModule, FormsModule]
 })
 export class UploadComponent {
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
@@ -35,9 +36,21 @@ export class UploadComponent {
   uploadProgress = 0;
   errorMessage = '';
   uploadedFileId = '';
-
-  // Maximum file size in bytes (10MB)
-  private maxFileSize = 10 * 1024 * 1024;
+  
+  // File type selection
+  selectedFileType: 'pdf' | 'epub' = 'pdf';
+  
+  // Allowed file types map
+  fileTypeExtensions = {
+    'pdf': ['.pdf'],
+    'epub': ['.epub']
+  };
+  
+  // Maximum file sizes (in bytes)
+  maxFileSizes = {
+    'pdf': 10 * 1024 * 1024, // 10MB
+    'epub': 20 * 1024 * 1024 // 20MB 
+  };
 
   // Handle dragover event
   onDragOver(event: DragEvent): void {
@@ -81,26 +94,59 @@ export class UploadComponent {
       this.processFile(file);
     }
   }
+  
+  // Change file type
+  onFileTypeChange(type: 'pdf' | 'epub'): void {
+    this.selectedFileType = type;
+    
+    // Reset file input when changing type
+    if (this.fileInput) {
+      this.fileInput.nativeElement.value = '';
+    }
+    
+    // Reset upload states
+    this.resetUpload();
+  }
 
   // Process the selected file
   private processFile(file: File): void {
     // Reset previous states
     this.resetUpload();
-
+    
+    // Get file extension
+    const fileExt = this.getFileExtension(file.name).toLowerCase();
+    const allowedExts = this.fileTypeExtensions[this.selectedFileType];
+    
     // Validate file type
-    if (file.type !== 'application/pdf') {
-      this.showError('Only PDF files are allowed');
+    if (!allowedExts.includes(fileExt)) {
+      this.showError(`Only ${this.selectedFileType.toUpperCase()} files are allowed`);
       return;
     }
 
     // Validate file size
-    if (file.size > this.maxFileSize) {
-      this.showError('File size exceeds the maximum limit of 10MB');
+    const maxSize = this.maxFileSizes[this.selectedFileType];
+    if (file.size > maxSize) {
+      this.showError(`File size exceeds the maximum limit of ${this.formatFileSize(maxSize)}`);
       return;
     }
 
     // Upload the file
     this.uploadFile(file);
+  }
+  
+  // Get file extension (including the dot)
+  private getFileExtension(filename: string): string {
+    const lastDotIndex = filename.lastIndexOf('.');
+    return lastDotIndex !== -1 ? filename.slice(lastDotIndex) : '';
+  }
+  
+  // Format file size to human-readable format
+  private formatFileSize(bytes: number): string {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
   }
 
   // Upload file to server
@@ -108,7 +154,12 @@ export class UploadComponent {
     this.isUploading = true;
     this.uploadProgress = 0;
 
-    this.assetService.uploadPdfFile(file).pipe(
+    // Use the appropriate upload method based on file type
+    const uploadObservable = this.selectedFileType === 'pdf' ? 
+      this.assetService.uploadPdfFile(file) :
+      this.assetService.uploadEpubFile(file);
+
+    uploadObservable.pipe(
       tap(event => {
         if (event.type === HttpEventType.UploadProgress && event.total) {
           this.uploadProgress = Math.round(100 * event.loaded / event.total);

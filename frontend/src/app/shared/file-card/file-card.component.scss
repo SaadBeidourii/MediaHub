@@ -1,9 +1,12 @@
-// frontend/src/app/shared/file-card/file-card.component.scss
+// Variables
 $file-card-bg: #2a2a2a;
 $text-primary: #ffffff;
 $text-secondary: rgba(255, 255, 255, 0.7);
 $transition-speed: 0.2s;
 $border-radius: 12px;
+$pdf-color: #ff5252;
+$epub-color: #4caf50;
+$neutral-icon-color: rgba(255, 255, 255, 0.7);
 
 .file-card {
   background-color: $file-card-bg;
@@ -31,14 +34,25 @@ $border-radius: 12px;
     justify-content: center;
     margin-bottom: 1rem;
 
-    .pdf-icon {
+    .pdf-icon, .epub-icon, .document-icon {
       display: inline-block;
       width: 64px;
       height: 64px;
       background-position: center;
       background-repeat: no-repeat;
       background-size: contain;
+    }
+
+    .pdf-icon {
       background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="rgba(255,255,255,0.7)"><path d="M20 2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-8.5 7.5c0 .83-.67 1.5-1.5 1.5H9v2H7.5V7H10c.83 0 1.5.67 1.5 1.5v1zm5 2c0 .83-.67 1.5-1.5 1.5h-2.5V7H15c.83 0 1.5.67 1.5 1.5v3zm4-3H19v1h1.5V11H19v2h-1.5V7h3v1.5zM9 9.5h1v-1H9v1zM4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm10 5.5h1v-3h-1v3z"/></svg>');
+    }
+    
+    .epub-icon {
+      background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="rgba(255,255,255,0.7)"><path d="M18 2h-6v7L9.5 7.5 7 9V2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM9 17H7v-2h2v2zm0-4H7v-2h2v2zm0-4H7V7h2v2zm8 8h-7v-2h7v2zm0-4h-7v-2h7v2zm0-4h-7V7h7v2z"/></svg>');
+    }
+    
+    .document-icon {
+      background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="rgba(255,255,255,0.7)"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 1.5L18.5 9H13V3.5zM6 20V4h5v7h7v9H6z"/></svg>');
     }
   }
 
@@ -60,6 +74,31 @@ $border-radius: 12px;
       color: $text-secondary;
       font-size: 0.75rem;
       margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      
+      .file-type {
+        text-transform: uppercase;
+        font-size: 0.6rem;
+        padding: 2px 6px;
+        border-radius: 10px;
+        font-weight: 600;
+        letter-spacing: 0.3px;
+        
+        // Colorful tags for different file types
+        &.pdf {
+          background-color: rgba($pdf-color, 0.2);
+          color: $pdf-color;
+        }
+        
+        &.epub {
+          background-color: rgba($epub-color, 0.2);
+          color: $epub-color;
+        }
+      }
     }
   }
 
@@ -114,6 +153,42 @@ $border-radius: 12px;
       .delete-icon {
         background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="rgba(255,255,255,0.7)"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>');
       }
+    }
+  }
+}
+
+// List view specific styling
+:host-context(.list-view) {
+  .file-card {
+    flex-direction: row;
+    padding: 0.75rem 1rem;
+    
+    .file-preview {
+      width: 40px;
+      height: 40px;
+      margin-right: 1rem;
+      margin-bottom: 0;
+      
+      .pdf-icon, .epub-icon, .document-icon {
+        width: 32px;
+        height: 32px;
+      }
+    }
+    
+    .file-info {
+      flex: 1;
+      text-align: left;
+      margin-bottom: 0;
+      
+      .file-details {
+        justify-content: flex-start;
+      }
+    }
+    
+    .file-actions {
+      opacity: 1;
+      margin-left: auto;
+      margin-top: 0;
     }
   }
 }
