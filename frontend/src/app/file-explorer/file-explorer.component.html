@@ -37,17 +37,14 @@
   <!-- Breadcrumb navigation -->
   <div class="breadcrumb-nav">
     <button class="breadcrumb-item root" (click)="navigateToRoot()">
-      <i class="root-icon">/</i>
+      <i class="root-icon"></i>
+      <span>Root</span>
     </button>
-    <i class="breadcrumb-separator" *ngIf="breadcrumbs.length > 0"></i>
-    <ng-container *ngFor="let folder of breadcrumbs; let last = last; let i = index">
-      <button 
-        class="breadcrumb-item" 
-        [class.active]="last" 
-        (click)="navigateToFolder(folder.id)">
-        <span>{{ folder.name }}</span>
+    <ng-container *ngFor="let folder of breadcrumbs; let last = last">
+      <i class="breadcrumb-separator"></i>
+      <button class="breadcrumb-item" [class.active]="last" (click)="navigateToFolder(folder.id)">
+        {{ folder.name }}
       </button>
-      <i class="breadcrumb-separator" *ngIf="!last"></i>
     </ng-container>
   </div>
 
@@ -77,7 +74,7 @@
 
   <!-- Content - Folders and Files combined -->
   <div class="content-grid" [class.list-view]="viewMode === 'list'" *ngIf="!isLoading && !errorMessage">
-    <!-- Folders -->
+    <!-- Folders first -->
     <app-folder-card 
       *ngFor="let folder of filteredFolders"
       [folder]="folder"
@@ -86,11 +83,10 @@
       (move)="openMoveModal('folder', $event.id, $event.name)">
     </app-folder-card>
 
-    <!-- Files -->
+    <!-- Files second -->
     <app-file-card
       *ngFor="let asset of filteredAssets"
       [asset]="asset"
-      [inFolderView]="true"
       (view)="viewFile($event)"
       (download)="downloadFile($event)"
       (delete)="confirmDeleteFile($event)"
@@ -177,18 +173,14 @@
       
       <div class="modal-form">
         <div class="folder-select">
+          <!-- Root option -->
           <div class="folder-option" [class.selected]="targetFolderId === null" (click)="targetFolderId = null">
             <i class="root-folder-icon"></i>
             <span>Root folder</span>
           </div>
-          <div 
-            class="folder-option" 
-            *ngFor="let folder of availableFolders" 
-            [class.selected]="targetFolderId === folder.id"
-            (click)="targetFolderId = folder.id">
-            <i class="folder-icon-small"></i>
-            <span>{{ folder.name }}</span>
-          </div>
+          
+          <!-- Hierarchical folder display -->
+          <ng-container *ngTemplateOutlet="folderTree; context: { $implicit: hierarchicalFolders }"></ng-container>
         </div>
       </div>
       
@@ -202,6 +194,33 @@
       </div>
     </div>
   </div>
+
+  <!-- Recursive template for the folder tree -->
+  <ng-template #folderTree let-folders>
+    <div *ngFor="let folder of folders" class="folder-tree-item">
+      <div 
+        class="folder-option" 
+        [class.selected]="targetFolderId === folder.id"
+        [class.has-children]="folder.children.length > 0"
+        (click)="targetFolderId = folder.id">
+        
+        <!-- Indent based on level -->
+        <span class="folder-indent" *ngFor="let i of [].constructor(folder.level)"></span>
+        
+        <!-- Folder icon and name -->
+        <i class="folder-icon-small"></i>
+        <span class="folder-name">{{ folder.name }}</span>
+        
+        <!-- Optional: indicator for subfolders -->
+        <span *ngIf="folder.children.length > 0" class="subfolder-count">({{ folder.children.length }})</span>
+      </div>
+      
+      <!-- Recursive call for children -->
+      <ng-container *ngIf="folder.children.length > 0">
+        <ng-container *ngTemplateOutlet="folderTree; context: { $implicit: folder.children }"></ng-container>
+      </ng-container>
+    </div>
+  </ng-template>
 
   <!-- Delete File Confirmation Modal -->
   <div class="modal" *ngIf="showDeleteFileModal">

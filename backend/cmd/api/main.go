@@ -133,6 +133,9 @@ func main() {
 
 			// Delete folder
 			folders.DELETE("/:id", folderHandler.DeleteFolder)
+
+			// Get folder path
+			folders.GET("/:id/path", folderHandler.GetFolderPath)
 		}
 	}
 

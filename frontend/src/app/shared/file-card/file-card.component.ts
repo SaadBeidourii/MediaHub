@@ -15,7 +15,6 @@ export class FileCardComponent {
   private assetService = inject(AssetService);
 
   @Input() asset!: Asset;
-  @Input() inFolderView = false;
 
   @Output() view = new EventEmitter<Asset>();
   @Output() download = new EventEmitter<Asset>();

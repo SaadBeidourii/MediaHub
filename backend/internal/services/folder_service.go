@@ -1,6 +1,7 @@
 package services
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/SaadBeidourii/MediaHub.git/internal/models"
@@ -81,16 +82,16 @@ func (s *FolderService) UpdateFolder(folderID string, request *models.FolderUpda
 		folder.Description = *request.Description
 	}
 	if request.ParentID != nil {
-		// Verify the parent exists and is not the folder itself (to prevent cycles)
 		if *request.ParentID == folderID {
-			return nil, models.ErrFolderNotFound
+			return nil, models.ErrFolderCannotBeItsOwnParent
 		}
+
 		if *request.ParentID != "" {
-			_, err := s.folderStore.GetByID(*request.ParentID)
-			if err != nil {
+			if err := s.checkForCyclicReference(folderID, *request.ParentID); err != nil {
 				return nil, err
 			}
 		}
+
 		folder.ParentID = request.ParentID
 	}
 
@@ -102,6 +103,34 @@ func (s *FolderService) UpdateFolder(folderID string, request *models.FolderUpda
 	}
 
 	return folder, nil
+}
+
+// Helper method to check for cyclic references
+func (s *FolderService) checkForCyclicReference(folderID, potentialParentID string) error {
+	currentID := potentialParentID
+
+	for {
+		parent, err := s.folderStore.GetByID(currentID)
+		if err != nil {
+			if err == models.ErrFolderNotFound {
+				return nil
+			}
+			return err
+		}
+
+		// If parent ID is nil, we've reached the root without finding a cycle
+		if parent.ParentID == nil {
+			return nil
+		}
+
+		// If this parent points back to our original folder, we have a cycle
+		if *parent.ParentID == folderID {
+			return models.ErrCyclicReferenceDetected
+		}
+
+		// Move up the chain
+		currentID = *parent.ParentID
+	}
 }
 
 // DeleteFolder deletes a folder and optionally its contents
@@ -130,7 +159,7 @@ func (s *FolderService) MoveAsset(assetID string, folderID *string) error {
 }
 
 // GetFolderContents retrieves all assets in a folder
-func (s *FolderService) GetFolderContents(folderID *string) ([]*models.Asset, error) {
+func (s *FolderService) GetFolderContents(folderID *string) (*models.FolderContents, error) {
 	// If folder ID is provided, verify it exists
 	if folderID != nil {
 		_, err := s.folderStore.GetByID(*folderID)
@@ -140,5 +169,42 @@ func (s *FolderService) GetFolderContents(folderID *string) ([]*models.Asset, er
 	}
 
 	// Get assets in the folder
-	return s.assetStore.GetByFolderID(folderID)
+	assets, err := s.assetStore.GetByFolderID(folderID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get assets: %w", err)
+	}
+
+	// Get subfolders in the folder
+	subfolders, err := s.folderStore.GetByParentID(folderID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get subfolders: %w", err)
+	}
+
+	// Return combined results
+	return &models.FolderContents{
+		Assets:     assets,
+		SubFolders: subfolders,
+	}, nil
+}
+
+// GetFolderPath retrieves the path from a folder to the root
+func (s *FolderService) GetFolderPath(folderID string) ([]*models.Folder, error) {
+	var path []*models.Folder
+	currentID := folderID
+
+	for {
+		folder, err := s.folderStore.GetByID(currentID)
+		if err != nil {
+			return nil, err
+		}
+
+		path = append([]*models.Folder{folder}, path...)
+
+		if folder.ParentID == nil {
+			break
+		}
+		currentID = *folder.ParentID
+	}
+
+	return path, nil
 }

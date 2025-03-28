@@ -30,3 +30,13 @@ export interface Folder {
     folderId: string;
     targetFolderId: string | null;
   }
+
+  export interface FolderContentsResponse {
+    subFolders: Folder[];
+    assets: any[];
+  }
+
+  export interface FolderNode extends Folder {
+    children: FolderNode[];
+    level: number;
+  }

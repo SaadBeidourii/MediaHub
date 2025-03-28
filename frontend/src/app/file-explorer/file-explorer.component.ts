@@ -7,6 +7,7 @@ import { FolderService } from '../services/folder.service';
 import { AssetService } from '../services/asset.service';
 import { 
   Folder, 
+  FolderNode,
   FolderContentsResponse, 
   FolderCreateRequest, 
   MoveFolderRequest 
@@ -65,6 +66,7 @@ export class FileExplorerComponent implements OnInit {
   itemToMove: { type: 'folder' | 'asset', id: string, name: string } | null = null;
   targetFolderId: string | null = null;
   availableFolders: Folder[] = [];
+  hierarchicalFolders: FolderNode[] = [];
   
   // Delete confirmation modals
   showDeleteFolderModal = false;
@@ -101,33 +103,21 @@ export class FileExplorerComponent implements OnInit {
     });
   }
 
-  // Load current folder contents and breadcrumbs
   loadCurrentContents(): void {
     this.isLoading = true;
     this.errorMessage = '';
 
-    // Load folder contents (subfolders)
+    // Load folder contents (both subfolders and assets)
     this.folderService.getFolderContents(this.currentFolderId).subscribe({
       next: (response: FolderContentsResponse) => {
         this.folders = response.subFolders || [];
         this.filteredFolders = [...this.folders];
+        this.assets = response.assets || [];
+        this.filteredAssets = [...this.assets];
         
-        // Load assets in the same folder
-        this.assetService.getAssetsByFolder(this.currentFolderId).subscribe({
-          next: (assets: Asset[]) => {
-            this.assets = assets || [];
-            this.filteredAssets = [...this.assets];
-            this.isLoading = false;
-            this.loadBreadcrumbs();
-          },
-          error: (error) => {
-            console.error('Error loading assets:', error);
-            this.assets = [];
-            this.filteredAssets = [];
-            this.isLoading = false;
-            this.loadBreadcrumbs();
-          }
-        });
+
+        this.loadBreadcrumbs();
+        this.isLoading = false;
       },
       error: (error) => {
         console.error('Error loading folder contents:', error);
@@ -379,6 +369,38 @@ export class FileExplorerComponent implements OnInit {
     this.confirmDeleteFile(asset);
   }
 
+
+  buildFolderHierarchy(folders: Folder[]): FolderNode[] {
+    const folderMap: Record<string, FolderNode> = {};
+    
+    // Initialize the folder nodes with empty children arrays
+    folders.forEach(folder => {
+      folderMap[folder.id] = {
+        ...folder,
+        children: [],
+        level: 0
+      };
+    });
+    
+    // Root level folders
+    const rootFolders: FolderNode[] = [];
+    
+    // Organize folders into hierarchy
+    folders.forEach(folder => {
+      const folderNode = folderMap[folder.id];
+      
+      if (!folder.parentId) {
+        rootFolders.push(folderNode);
+      } else if (folderMap[folder.parentId]) {
+        const parent = folderMap[folder.parentId];
+        parent.children.push(folderNode);
+        folderNode.level = parent.level + 1;
+      }
+    });
+    return rootFolders;
+  }
+    
+  
   // Move functionality
   openMoveModal(type: 'folder' | 'asset', id: string, name: string): void {
     this.itemToMove = { type, id, name };
@@ -387,25 +409,39 @@ export class FileExplorerComponent implements OnInit {
     // Load available folders for moving
     this.folderService.getAllFolders().subscribe({
       next: (folders: Folder[]) => {
-        // Filter out the current folder and its children
+        let filteredFolders = folders;
+        
         if (type === 'folder') {
-          this.availableFolders = folders.filter(f => f.id !== id);
-          // Filter out the current folder as target
-          if (this.currentFolderId) {
-            this.availableFolders = this.availableFolders.filter(f => f.id !== this.currentFolderId);
-          }
-        } else {
-          // For assets, just filter out the current folder
-          this.availableFolders = folders;
-          if (this.currentFolderId) {
-            this.availableFolders = this.availableFolders.filter(f => f.id !== this.currentFolderId);
-          }
+          filteredFolders = folders.filter(f => f.id !== id);
+          this.removeDescendantFolders(filteredFolders, id);
         }
+        
+        // Filter out the current folder as target
+        if (this.currentFolderId) {
+          filteredFolders = filteredFolders.filter(f => f.id !== this.currentFolderId);
+        }
+        
+        // Build the folder hierarchy for display
+        this.hierarchicalFolders = this.buildFolderHierarchy(filteredFolders);
+        this.availableFolders = filteredFolders; // Keep flat list for selection
         
         this.showMoveModal = true;
       },
       error: (error) => {
         console.error('Error loading folders for move operation:', error);
+      }
+    });
+  }
+  
+  // Add this helper method to remove all descendants of a folder
+  removeDescendantFolders(folders: Folder[], folderId: string): void {
+    const children = folders.filter(f => f.parentId === folderId);
+    
+    children.forEach(child => {
+      const index = folders.findIndex(f => f.id === child.id);
+      if (index !== -1) {
+        folders.splice(index, 1);
+        this.removeDescendantFolders(folders, child.id);
       }
     });
   }

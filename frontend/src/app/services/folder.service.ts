@@ -1,9 +1,10 @@
 // frontend/src/app/services/folder.service.ts
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, of, throwError } from 'rxjs';
+import { Observable, of, throwError,switchMap } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { environment } from '../../ environments/environment';
+import { AssetService } from './asset.service';
 import { 
   Folder, 
   FolderResponse, 
@@ -19,6 +20,7 @@ import {
 export class FolderService {
   private http = inject(HttpClient);
   private apiUrl = environment.apiUrl;
+  private assetService = inject(AssetService);
 
   // Get all folders
   getAllFolders(): Observable<Folder[]> {
@@ -69,13 +71,17 @@ export class FolderService {
           })
         );
     } else {
-      // For root folder, get folders with parentId=null
+      // For root folder, combine folders and assets requests
       return this.getFoldersByParent("root").pipe(
-        map(folders => {
-          return {
-            subFolders: folders,
-            assets: []  // Assets will be loaded separately from the asset service
-          };
+        switchMap(folders => {
+          return this.assetService.getAssetsByFolder(null).pipe(
+            map(assets => {
+              return {
+                subFolders: folders,
+                assets: assets
+              };
+            })
+          );
         }),
         catchError(error => {
           console.error('Error fetching root contents:', error);
@@ -139,15 +145,24 @@ export class FolderService {
   // Get breadcrumb path for a folder
   getBreadcrumbPath(folderId: string | null): Observable<Folder[]> {
     if (!folderId) {
-      return of([]);
+      return of([]); // Empty path for root
     }
     
-    // Just get the current folder for now, since we don't have path API
     return this.getFolderById(folderId).pipe(
-      map(folder => [folder]),
+      switchMap(folder => {
+        if (!folder.parentId) {
+          // This is a root-level folder, return just this folder
+          return of([folder]);
+        }
+        
+        // Get the parent path recursively, then add this folder
+        return this.getBreadcrumbPath(folder.parentId).pipe(
+          map(parentPath => [...parentPath, folder])
+        );
+      }),
       catchError(error => {
-        console.error('Error getting breadcrumb path:', error);
-        return throwError(() => error);
+        console.error('Error building breadcrumb path:', error);
+        return of([]);
       })
     );
   }

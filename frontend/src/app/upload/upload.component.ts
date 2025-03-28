@@ -171,7 +171,7 @@ export class UploadComponent {
   // Navigate to the uploaded file
   viewFile(): void {
     if (this.uploadedFileId) {
-      this.router.navigate(['/files']);
+      this.router.navigate(['/explorer']);
     }
   }
 

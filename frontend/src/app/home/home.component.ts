@@ -41,7 +41,7 @@ export class HomeComponent implements OnInit {
 
   // Navigate to files page
   viewAllFiles(): void {
-    this.router.navigate(['/files']);
+    this.router.navigate(['/explorer']);
   }
 
   // You can add methods to fetch data from your backend

@@ -858,3 +858,52 @@ $transition-speed: 0.2s;
     transform: translateY(0);
   }
 }
+
+
+/* Folder tree styling */
+.folder-tree-item {
+  width: 100%;
+}
+
+.folder-indent {
+  display: inline-block;
+  width: 16px;
+}
+
+.folder-option {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  border-radius: 4px;
+}
+
+.folder-option:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.folder-option.selected {
+  background-color: rgba(58, 134, 255, 0.2);
+}
+
+.folder-name {
+  margin-left: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.subfolder-count {
+  margin-left: 4px;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.folder-select {
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  margin-bottom: 16px;
+}

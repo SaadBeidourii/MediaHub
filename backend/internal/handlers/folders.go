@@ -157,7 +157,8 @@ func (h *FolderHandler) GetFolderContents(c *gin.Context) {
 		folderIDPtr = &folderID
 	}
 
-	assets, err := h.folderService.GetFolderContents(folderIDPtr)
+	// Get folder contents (both assets and subfolders)
+	contents, err := h.folderService.GetFolderContents(folderIDPtr)
 	if err != nil {
 		if err == models.ErrFolderNotFound {
 			c.JSON(http.StatusNotFound, gin.H{
@@ -172,9 +173,8 @@ func (h *FolderHandler) GetFolderContents(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"assets": assets,
-	})
+	// Return the combined contents
+	c.JSON(http.StatusOK, contents)
 }
 
 // MoveAsset handles PUT /api/assets/:id/move
@@ -211,5 +211,29 @@ func (h *FolderHandler) MoveAsset(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"status":  "success",
 		"message": "Asset moved successfully",
+	})
+}
+
+// GetFolderPath handles GET /api/folders/:id/path
+func (h *FolderHandler) GetFolderPath(c *gin.Context) {
+	folderID := c.Param("id")
+
+	path, err := h.folderService.GetFolderPath(folderID)
+	if err != nil {
+		if err == models.ErrFolderNotFound {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": "Folder not found",
+			})
+			return
+		}
+
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to get folder path: " + err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"path": path,
 	})
 }
