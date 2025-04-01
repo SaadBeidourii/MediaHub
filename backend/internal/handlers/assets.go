@@ -10,7 +10,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-
 type AssetHandler struct {
 	assetService  *services.AssetService
 	mediaHandlers map[models.AssetType]MediaTypeHandler
@@ -21,7 +20,6 @@ type MediaTypeHandler interface {
 	HandleUpload(c *gin.Context, assetService *services.AssetService) (*models.Asset, error)
 }
 
-
 func NewAssetHandler(assetService *services.AssetService) *AssetHandler {
 	handler := &AssetHandler{
 		assetService:  assetService,
@@ -29,6 +27,7 @@ func NewAssetHandler(assetService *services.AssetService) *AssetHandler {
 	}
 	handler.mediaHandlers[models.AssetTypePDF] = NewPDFHandler()
 	handler.mediaHandlers[models.AssetTypeEPUB] = NewEPUBHandler()
+	handler.mediaHandlers[models.AssetTypeAUDIO] = NewAudioHandler()
 
 	return handler
 }
@@ -105,6 +104,11 @@ func (h *AssetHandler) UploadPDF(c *gin.Context) {
 // UploadEPUB handles POST /api/assets/epub
 func (h *AssetHandler) UploadEPUB(c *gin.Context) {
 	h.HandleUpload(c, models.AssetTypeEPUB)
+}
+
+// UploadAudio handles POST /api/assets/audio
+func (h *AssetHandler) UploadAudio(c *gin.Context) {
+	h.HandleUpload(c, models.AssetTypeAUDIO)
 }
 
 // GetAsset handles GET /api/assets/:id

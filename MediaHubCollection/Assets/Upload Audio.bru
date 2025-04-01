@@ -1,0 +1,19 @@
+meta {
+  name: Upload Audio
+  type: http
+  seq: 3
+}
+
+post {
+  url: http://localhost:8080/api/assets/audio
+  body: multipartForm
+  auth: none
+}
+
+headers {
+  Content-Type: multipart/form-data
+}
+
+body:multipart-form {
+  file: @file(/Users/saadbeidouri/Downloads/file_example_WAV_1MG.mp3)
+}

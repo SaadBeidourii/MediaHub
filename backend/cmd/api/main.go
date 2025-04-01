@@ -104,6 +104,9 @@ func main() {
 			// Upload a new EPUB asset
 			assets.POST("/epub", assetHandler.UploadEPUB)
 
+			// Upload a new audio asset
+			assets.POST("/audio", assetHandler.UploadAudio)
+
 			// Get asset details
 			assets.GET("/:id", assetHandler.GetAsset)
 

@@ -6,10 +6,16 @@ meta {
 
 put {
   url: http://localhost:8080/api/folders/{{folder-id}}
-  body: none
+  body: json
   auth: none
 }
 
+body:json {
+  {
+    "parentId" : "67de146d-1b88-4fa5-9ffc-17547cac4e4d"
+  }
+}
+
 vars:pre-request {
-  folder-id: 
+  folder-id: 34427380-9474-4c6a-a861-16bd38adcb7b
 }

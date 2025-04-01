@@ -13,8 +13,9 @@ var (
 type AssetType string
 
 const (
-	AssetTypePDF  AssetType = "pdf"
-	AssetTypeEPUB AssetType = "epub"
+	AssetTypePDF   AssetType = "pdf"
+	AssetTypeEPUB  AssetType = "epub"
+	AssetTypeAUDIO AssetType = "audio"
 )
 
 // Asset represents a media file in the system
