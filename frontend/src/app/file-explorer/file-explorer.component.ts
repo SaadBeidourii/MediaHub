@@ -19,13 +19,14 @@ import {
 import { FileCardComponent } from '../shared/file-card/file-card.component';
 import { FolderCardComponent } from '../shared/folder-card/folder-card.component';
 import { EpubViewerComponent } from '../epub-viewer/epub-viewer.component';
+import { AudioPlayerComponent } from '../audio-player/audio-player.component';
 
 @Component({
   selector: 'app-file-explorer',
   templateUrl: './file-explorer.component.html',
   styleUrls: ['./file-explorer.component.scss'],
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, FileCardComponent, FolderCardComponent, EpubViewerComponent]
+  imports: [CommonModule, FormsModule, RouterModule, FileCardComponent, FolderCardComponent, EpubViewerComponent, AudioPlayerComponent]
 })
 export class FileExplorerComponent implements OnInit {
   @ViewChild('pdfViewer') pdfViewer: ElementRef<HTMLIFrameElement> | undefined;
@@ -93,6 +94,10 @@ export class FileExplorerComponent implements OnInit {
   // EPUB Viewer modal
   showEpubViewer: boolean = false;
   currentEpubFile: Asset | null = null;
+
+  // Audio Viewer modal
+  showAudioViewer: boolean = false;
+  currentAudioFile: Asset | null = null;
 
   ngOnInit(): void {
     // Load saved view mode preference
@@ -242,15 +247,24 @@ export class FileExplorerComponent implements OnInit {
 
   // File operations
   viewFile(asset: Asset): void {
-    // Handle different asset types based on file extension or asset.type
     const fileType = asset.type?.toLowerCase();
+    
+    console.log('Opening file with type:', fileType, asset);
     
     if (fileType === 'pdf') {
       this.viewPdfFile(asset);
     } else if (fileType === 'epub') {
       this.viewEpubFile(asset);
+    } else if (fileType === 'audio') {
+      this.viewAudioFile(asset);
+    } else if (fileType && (
+      fileType.includes('audio') || 
+      asset.name.toLowerCase().endsWith('.mp3') || 
+      asset.name.toLowerCase().endsWith('.wav') || 
+      asset.name.toLowerCase().endsWith('.ogg') ||
+      asset.name.toLowerCase().endsWith('.m4a'))) {
+      this.viewAudioFile(asset);
     } else {
-      // Default fallback - just download the file
       this.downloadFile(asset);
     }
   }
@@ -288,10 +302,16 @@ export class FileExplorerComponent implements OnInit {
   
   // View EPUB file
   viewEpubFile(asset: Asset): void {
-    console.log('Opening EPUB file:', asset);
     this.currentEpubFile = asset;
     this.showEpubViewer = true;
   }
+
+  // View Audio file
+  viewAudioFile(asset: Asset){
+    this.currentAudioFile = asset;
+    this.showAudioViewer = true;
+  }
+
   
   // Close PDF viewer
   closePdfViewer(): void {
@@ -311,6 +331,12 @@ export class FileExplorerComponent implements OnInit {
   closeEpubViewer(): void {
     this.showEpubViewer = false;
     this.currentEpubFile = null;
+  }
+
+  // Close Audio viewer
+  closeAudioViewer() : void{
+    this.showAudioViewer = false;
+    this.currentAudioFile = null
   }
 
   downloadCurrentPdf(): void {
@@ -525,5 +551,8 @@ export class FileExplorerComponent implements OnInit {
     this.showDeleteFolderModal = false;
     this.showDeleteFileModal = false;
     this.showDownloadModal = false;
+    if (this.showPdfViewer) this.closePdfViewer();
+    if (this.showEpubViewer) this.closeEpubViewer();
+    if (this.showAudioViewer) this.closeAudioViewer();
   }
 }

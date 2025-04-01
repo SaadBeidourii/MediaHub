@@ -298,11 +298,22 @@
     </app-epub-viewer>
   </div>
 
+  <!-- AUDIO Viewer Modal -->
+  <div class="audio-modal" *ngIf="showAudioViewer">
+    <app-audio-player 
+      [asset]="currentAudioFile!" 
+      (close)="closeAudioViewer()" 
+      (download)="downloadFile($event)">
+    </app-audio-player>
+  </div>
+  <div class="audio-modal-backdrop" *ngIf="showAudioViewer" (click)="closeAudioViewer()"></div>
+
   <!-- Modal backdrop for all modals -->
   <div class="modal-backdrop" 
-    *ngIf="showNewFolderModal || showMoveModal || showDeleteFolderModal || showDeleteFileModal || showDownloadModal || showPdfViewer || showEpubViewer" 
+    *ngIf="showNewFolderModal || showMoveModal || showDeleteFolderModal || showDeleteFileModal || showDownloadModal || showPdfViewer || showEpubViewer || showAudioViewer" 
     (click)="closeAllModals()">
   </div>
   <div class="pdf-modal-backdrop" *ngIf="showPdfViewer" (click)="closePdfViewer()"></div>
   <div class="modal-backdrop" *ngIf="showEpubViewer" (click)="closeEpubViewer()"></div>
+  <div class="modal-backdrop" *ngIf="showAudioViewer" (click)="closeAudioViewer()"></div>
 </div>
