@@ -19,6 +19,13 @@
         <i class="epub-icon"></i>
         <span>EPUB</span>
       </button>
+      <button 
+        [class.active]="selectedFileType === 'audio'"
+        (click)="onFileTypeChange('audio')"
+        class="file-type-btn audio active">
+        <i class="audio-icon"></i>
+        <span>AUDIO</span>
+      </button> 
     </div>
 
     <div
@@ -32,12 +39,12 @@
 
       <div class="drop-zone-content" *ngIf="!isUploading && !uploadComplete">
         <div class="upload-icon">
-          <i [class]="selectedFileType === 'pdf' ? 'pdf-upload-icon' : 'epub-upload-icon'"></i>
+          <i [ngClass]="getUploadIconClass()"></i>
         </div>
         <h3>Drag & drop your {{selectedFileType.toUpperCase()}} file here</h3>
         <p>or click to browse files</p>
         <button class="select-btn">Select {{selectedFileType.toUpperCase()}} File</button>
-        <p class="file-limit">Maximum file size: {{selectedFileType === 'pdf' ? '10MB' : '20MB'}}</p>
+        <p class="file-limit">Maximum file size: {{getMAxSize()}}</p>
       </div>
 
       <!-- Upload Progress State -->
@@ -80,7 +87,7 @@
     <input
       #fileInput
       type="file"
-      [accept]="selectedFileType === 'pdf' ? 'application/pdf' : 'application/epub+zip,.epub'"
+      [accept]="getAcceptedMimeTypes()"
       style="display: none"
       (change)="onFileSelected($event)">
   </div>

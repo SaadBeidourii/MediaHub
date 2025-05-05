@@ -59,6 +59,16 @@ export class AssetService {
     );
   }
 
+  uploadAudioFile(file: File) {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post<AssetResponse>(`${this.apiUrl}/assets/audio`, formData, {
+      reportProgress: true,
+      observe: 'events'
+    });
+  }
+  
+
   // Get all assets
   getAllAssets(): Observable<Asset[]> {
     return this.http.get<AssetsListResponse>(`${this.apiUrl}/assets`)

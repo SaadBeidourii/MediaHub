@@ -15,19 +15,6 @@ import { AssetService } from '../services/asset.service';
   imports: [CommonModule, HttpClientModule, FormsModule]
 })
 export class UploadComponent {
-  @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
-
-  // Use inject pattern for Angular 14+ standalone components
-  private router = inject(Router);
-  private assetService = inject(AssetService);
-
-  // Check if running in browser
-  private isBrowser: boolean;
-
-  constructor(@Inject(PLATFORM_ID) platformId: Object) {
-    this.isBrowser = isPlatformBrowser(platformId);
-  }
-
   // UI state variables
   isDragOver = false;
   isUploading = false;
@@ -37,20 +24,33 @@ export class UploadComponent {
   errorMessage = '';
   uploadedFileId = '';
   
-  // File type selection
-  selectedFileType: 'pdf' | 'epub' = 'pdf';
+  selectedFileType: 'pdf' | 'epub' | 'audio' = 'pdf';
   
-  // Allowed file types map
   fileTypeExtensions = {
     'pdf': ['.pdf'],
-    'epub': ['.epub']
+    'epub': ['.epub'],
+    'audio': ['.mp3', '.m4a', '.wav', '.ogg', '.flac', '.aac', '.webm']
   };
   
   // Maximum file sizes (in bytes)
   maxFileSizes = {
-    'pdf': 10 * 1024 * 1024, // 10MB
-    'epub': 20 * 1024 * 1024 // 20MB 
+    'pdf': 10 * 1024 * 1024,
+    'epub': 20 * 1024 * 1024,
+    'audio': 10 * 1024 * 1024 
   };
+
+  @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
+
+
+  private router = inject(Router);
+  private assetService = inject(AssetService);
+
+  // Check if running in browser
+  private isBrowser: boolean;
+
+  constructor(@Inject(PLATFORM_ID) platformId: Object) {
+    this.isBrowser = isPlatformBrowser(platformId);
+  }
 
   // Handle dragover event
   onDragOver(event: DragEvent): void {
@@ -96,51 +96,41 @@ export class UploadComponent {
   }
   
   // Change file type
-  onFileTypeChange(type: 'pdf' | 'epub'): void {
+  onFileTypeChange(type: 'pdf' | 'epub'| 'audio'): void {
     this.selectedFileType = type;
     
-    // Reset file input when changing type
     if (this.fileInput) {
       this.fileInput.nativeElement.value = '';
     }
-    
-    // Reset upload states
     this.resetUpload();
   }
 
   // Process the selected file
   private processFile(file: File): void {
-    // Reset previous states
     this.resetUpload();
     
-    // Get file extension
     const fileExt = this.getFileExtension(file.name).toLowerCase();
     const allowedExts = this.fileTypeExtensions[this.selectedFileType];
     
-    // Validate file type
     if (!allowedExts.includes(fileExt)) {
       this.showError(`Only ${this.selectedFileType.toUpperCase()} files are allowed`);
       return;
     }
 
-    // Validate file size
     const maxSize = this.maxFileSizes[this.selectedFileType];
     if (file.size > maxSize) {
       this.showError(`File size exceeds the maximum limit of ${this.formatFileSize(maxSize)}`);
       return;
     }
 
-    // Upload the file
     this.uploadFile(file);
   }
   
-  // Get file extension (including the dot)
   private getFileExtension(filename: string): string {
     const lastDotIndex = filename.lastIndexOf('.');
     return lastDotIndex !== -1 ? filename.slice(lastDotIndex) : '';
   }
   
-  // Format file size to human-readable format
   private formatFileSize(bytes: number): string {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
@@ -149,42 +139,53 @@ export class UploadComponent {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
   }
 
-  // Upload file to server
   private uploadFile(file: File): void {
     this.isUploading = true;
     this.uploadProgress = 0;
+  
+    let uploadObservable;
 
-    // Use the appropriate upload method based on file type
-    const uploadObservable = this.selectedFileType === 'pdf' ? 
-      this.assetService.uploadPdfFile(file) :
-      this.assetService.uploadEpubFile(file);
-
+    switch (this.selectedFileType) {
+      case 'pdf':
+        uploadObservable = this.assetService.uploadPdfFile(file);
+        break;
+      case 'epub':
+        uploadObservable = this.assetService.uploadEpubFile(file);
+        break;
+      case 'audio':
+        uploadObservable = this.assetService.uploadAudioFile(file);
+        break;
+      default:
+        this.showError('Unsupported file type.');
+        this.isUploading = false;
+        return;
+    }
+  
     uploadObservable.pipe(
       tap(event => {
         if (event.type === HttpEventType.UploadProgress && event.total) {
           this.uploadProgress = Math.round(100 * event.loaded / event.total);
         } else if (event.type === HttpEventType.Response) {
-          // Successfully uploaded
           const response = event.body;
-          if (response && response.asset && response.asset.id) {
+          if (response?.asset?.id) {
             this.uploadedFileId = response.asset.id;
             setTimeout(() => {
               this.isUploading = false;
               this.uploadComplete = true;
-            }, 500); // Small delay for better UX
+            }, 500);
           }
         }
       }),
       catchError(error => {
         console.error('Upload error:', error);
         let message = 'An error occurred during upload';
-
-        if (error.error && error.error.error) {
+  
+        if (error.error?.error) {
           message = error.error.error;
         } else if (error.statusText) {
           message = `Error: ${error.statusText}`;
         }
-
+  
         this.showError(message);
         return of(null);
       }),
@@ -195,6 +196,7 @@ export class UploadComponent {
       })
     ).subscribe();
   }
+  
 
   // Display error message
   private showError(message: string): void {
@@ -230,4 +232,49 @@ export class UploadComponent {
   uploadAnother(): void {
     this.resetUpload();
   }
+
+  getUploadIconClass(): string {
+    switch (this.selectedFileType) {
+      case 'pdf':
+        return 'pdf-upload-icon';
+      case 'epub':
+        return 'epub-upload-icon';
+      case 'audio':
+        return 'audio-upload-icon';
+      default:
+        return 'default-upload-icon';
+    }
+  }
+
+  getMAxSize(){
+    return this.maxFileSizes[this.selectedFileType] / (1024 * 1024) + ' MB';
+  }
+
+  getAcceptedMimeTypes(): string {
+    switch (this.selectedFileType) {
+      case 'pdf':
+        return 'application/pdf';
+      case 'epub':
+        return 'application/epub+zip,.epub';
+      case 'audio':
+        return [
+          'audio/mpeg',
+          'audio/mp3',
+          'audio/mp4',
+          'audio/wav',
+          'audio/x-wav',
+          'audio/vnd.wave',
+          'audio/ogg',
+          'audio/flac',
+          'audio/x-flac',
+          'audio/aac',
+          'audio/x-m4a',
+          'audio/webm'
+        ].join(',');
+      default:
+        return '';
+    }
+  }
+  
+  
 }
