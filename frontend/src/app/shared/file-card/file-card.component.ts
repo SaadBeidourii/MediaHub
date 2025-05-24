@@ -15,6 +15,7 @@ export class FileCardComponent {
 
   @Input() asset!: Asset;
 
+  @Input() viewable = true;
   @Output() view = new EventEmitter<Asset>();
   @Output() download = new EventEmitter<Asset>();
   @Output() delete = new EventEmitter<Asset>();

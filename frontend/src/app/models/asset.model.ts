@@ -16,8 +16,9 @@ export interface Asset {
     updatedAt: string;
     folderId: string | null;
     metadata?: any;
+    url?: string;
 }
-  
+
 export interface AssetResponse {
 asset: Asset;
 status: string;

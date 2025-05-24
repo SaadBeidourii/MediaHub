@@ -5,28 +5,26 @@ import { FormsModule } from '@angular/forms';
 import { SafeResourceUrl, DomSanitizer } from '@angular/platform-browser';
 import { FolderService } from '../services/folder.service';
 import { AssetService } from '../services/asset.service';
-import { 
-  Folder, 
+import {
+  Folder,
   FolderNode,
-  FolderContentsResponse, 
-  FolderCreateRequest, 
-  MoveFolderRequest 
+  FolderContentsResponse,
+  FolderCreateRequest,
+  MoveFolderRequest
 } from '../models/folder.model';
-import { 
-  Asset, 
+import {
+  Asset,
   MoveAssetRequest
 } from '../models/asset.model';
 import { FileCardComponent } from '../shared/file-card/file-card.component';
 import { FolderCardComponent } from '../shared/folder-card/folder-card.component';
-import { EpubViewerComponent } from '../epub-viewer/epub-viewer.component';
-import { AudioPlayerComponent } from '../audio-player/audio-player.component';
 
 @Component({
   selector: 'app-file-explorer',
   templateUrl: './file-explorer.component.html',
   styleUrls: ['./file-explorer.component.scss'],
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, FileCardComponent, FolderCardComponent, EpubViewerComponent, AudioPlayerComponent]
+  imports: [CommonModule, FormsModule, RouterModule, FileCardComponent, FolderCardComponent]
 })
 export class FileExplorerComponent implements OnInit {
   @ViewChild('pdfViewer') pdfViewer: ElementRef<HTMLIFrameElement> | undefined;
@@ -41,39 +39,39 @@ export class FileExplorerComponent implements OnInit {
   // Current location state
   currentFolderId: string | null = null;
   viewMode: 'grid' | 'list' = 'grid';
-  
+
   // Breadcrumb navigation
   breadcrumbs: Folder[] = [];
-  
+
   // Content data
   folders: Folder[] = [];
   assets: Asset[] = [];
-  
+
   // Filtered data for search
   filteredFolders: Folder[] = [];
   filteredAssets: Asset[] = [];
-  
+
   // UI states
   isLoading = true;
   errorMessage = '';
   searchQuery = '';
-  
+
   // New folder modal
   showNewFolderModal = false;
   newFolderName = '';
   isCreatingFolder = false;
-  
+
   // Move item modal
   showMoveModal = false;
   itemToMove: { type: 'folder' | 'asset', id: string, name: string } | null = null;
   targetFolderId: string | null = null;
   availableFolders: Folder[] = [];
   hierarchicalFolders: FolderNode[] = [];
-  
+
   // Delete confirmation modals
   showDeleteFolderModal = false;
   folderToDelete: Folder | null = null;
-  
+
   showDeleteFileModal = false;
   fileToDelete: Asset | null = null;
 
@@ -82,7 +80,7 @@ export class FileExplorerComponent implements OnInit {
   fileToDownload: Asset | null = null;
   downloadedFileName = '';
   showDownloadSuccess: boolean = false;
-  
+
   // PDF Viewer modal
   showPdfViewer: boolean = false;
   currentPdfUrl: SafeResourceUrl | null = null;
@@ -90,7 +88,7 @@ export class FileExplorerComponent implements OnInit {
   currentPdfFile: Asset | null = null;
   isLoadingPdf: boolean = false;
   currentPdfRawUrl: string | null = null;
-  
+
   // EPUB Viewer modal
   showEpubViewer: boolean = false;
   currentEpubFile: Asset | null = null;
@@ -124,7 +122,7 @@ export class FileExplorerComponent implements OnInit {
         this.filteredFolders = [...this.folders];
         this.assets = response.assets || [];
         this.filteredAssets = [...this.assets];
-        
+
         this.loadBreadcrumbs();
         this.isLoading = false;
       },
@@ -163,7 +161,7 @@ export class FileExplorerComponent implements OnInit {
   // Search functionality
   onSearch(): void {
     const query = this.searchQuery.toLowerCase();
-    
+
     if (!query) {
       this.filteredFolders = [...this.folders];
       this.filteredAssets = [...this.assets];
@@ -204,12 +202,12 @@ export class FileExplorerComponent implements OnInit {
     }
 
     this.isCreatingFolder = true;
-    
+
     const folderRequest: FolderCreateRequest = {
       name: this.newFolderName.trim(),
       parentId: this.currentFolderId || undefined
     };
-    
+
     this.folderService.createFolder(folderRequest).subscribe({
       next: (response) => {
         this.folders.push(response.folder);
@@ -248,9 +246,9 @@ export class FileExplorerComponent implements OnInit {
   // File operations
   viewFile(asset: Asset): void {
     const fileType = asset.type?.toLowerCase();
-    
+
     console.log('Opening file with type:', fileType, asset);
-    
+
     if (fileType === 'pdf') {
       this.viewPdfFile(asset);
     } else if (fileType === 'epub') {
@@ -258,9 +256,9 @@ export class FileExplorerComponent implements OnInit {
     } else if (fileType === 'audio') {
       this.viewAudioFile(asset);
     } else if (fileType && (
-      fileType.includes('audio') || 
-      asset.name.toLowerCase().endsWith('.mp3') || 
-      asset.name.toLowerCase().endsWith('.wav') || 
+      fileType.includes('audio') ||
+      asset.name.toLowerCase().endsWith('.mp3') ||
+      asset.name.toLowerCase().endsWith('.wav') ||
       asset.name.toLowerCase().endsWith('.ogg') ||
       asset.name.toLowerCase().endsWith('.m4a'))) {
       this.viewAudioFile(asset);
@@ -268,25 +266,25 @@ export class FileExplorerComponent implements OnInit {
       this.downloadFile(asset);
     }
   }
-  
+
   // View PDF file
   viewPdfFile(asset: Asset): void {
     this.isLoadingPdf = true;
     this.currentPdfFile = asset;
     this.currentPdfName = asset.name;
     this.showPdfViewer = true;
-  
+
     this.assetService.downloadAsset(asset.id).subscribe({
       next: (blob: Blob) => {
         // Make sure we have the right content type
         const pdfBlob = new Blob([blob], { type: 'application/pdf' });
-        
+
         // Store the raw URL
         this.currentPdfRawUrl = window.URL.createObjectURL(pdfBlob);
-        
+
         // Create safe URL
         this.currentPdfUrl = this.sanitizer.bypassSecurityTrustResourceUrl(this.currentPdfRawUrl);
-        
+
         // Small delay to ensure DOM is ready
         setTimeout(() => {
           this.isLoadingPdf = false;
@@ -299,7 +297,7 @@ export class FileExplorerComponent implements OnInit {
       }
     });
   }
-  
+
   // View EPUB file
   viewEpubFile(asset: Asset): void {
     this.currentEpubFile = asset;
@@ -312,7 +310,7 @@ export class FileExplorerComponent implements OnInit {
     this.showAudioViewer = true;
   }
 
-  
+
   // Close PDF viewer
   closePdfViewer(): void {
     // Properly revoke the raw URL
@@ -320,13 +318,13 @@ export class FileExplorerComponent implements OnInit {
       URL.revokeObjectURL(this.currentPdfRawUrl);
       this.currentPdfRawUrl = null;
     }
-    
+
     this.showPdfViewer = false;
     this.currentPdfUrl = null;
     this.currentPdfName = '';
     this.currentPdfFile = null;
   }
-  
+
   // Close EPUB viewer
   closeEpubViewer(): void {
     this.showEpubViewer = false;
@@ -356,7 +354,7 @@ export class FileExplorerComponent implements OnInit {
 
   downloadSelectedFile(): void {
     if (!this.fileToDownload) return;
-    
+
     // Store a local reference to the file
     const fileToDownload = this.fileToDownload;
 
@@ -370,11 +368,11 @@ export class FileExplorerComponent implements OnInit {
         a.click();
         window.URL.revokeObjectURL(url);
         a.remove();
-        
+
         // Show success notification
         this.downloadedFileName = fileToDownload.name;
         this.showDownloadSuccess = true;
-        
+
         // Auto-hide notification after 3 seconds
         setTimeout(() => {
           this.showDownloadSuccess = false;
@@ -384,7 +382,7 @@ export class FileExplorerComponent implements OnInit {
         console.error('Error downloading file:', error);
       }
     });
-    
+
     this.showDownloadModal = false;
     this.fileToDownload = null;
   }
@@ -430,7 +428,7 @@ export class FileExplorerComponent implements OnInit {
 
   buildFolderHierarchy(folders: Folder[]): FolderNode[] {
     const folderMap: Record<string, FolderNode> = {};
-    
+
     // Initialize the folder nodes with empty children arrays
     folders.forEach(folder => {
       folderMap[folder.id] = {
@@ -439,14 +437,14 @@ export class FileExplorerComponent implements OnInit {
         level: 0
       };
     });
-    
+
     // Root level folders
     const rootFolders: FolderNode[] = [];
-    
+
     // Organize folders into hierarchy
     folders.forEach(folder => {
       const folderNode = folderMap[folder.id];
-      
+
       if (!folder.parentId) {
         rootFolders.push(folderNode);
       } else if (folderMap[folder.parentId]) {
@@ -457,32 +455,32 @@ export class FileExplorerComponent implements OnInit {
     });
     return rootFolders;
   }
-    
-  
+
+
   // Move functionality
   openMoveModal(type: 'folder' | 'asset', id: string, name: string): void {
     this.itemToMove = { type, id, name };
     this.targetFolderId = null;
-    
+
     // Load available folders for moving
     this.folderService.getAllFolders().subscribe({
       next: (folders: Folder[]) => {
         let filteredFolders = folders;
-        
+
         if (type === 'folder') {
           filteredFolders = folders.filter(f => f.id !== id);
           this.removeDescendantFolders(filteredFolders, id);
         }
-        
+
         // Filter out the current folder as target
         if (this.currentFolderId) {
           filteredFolders = filteredFolders.filter(f => f.id !== this.currentFolderId);
         }
-        
+
         // Build the folder hierarchy for display
         this.hierarchicalFolders = this.buildFolderHierarchy(filteredFolders);
         this.availableFolders = filteredFolders; // Keep flat list for selection
-        
+
         this.showMoveModal = true;
       },
       error: (error) => {
@@ -490,11 +488,11 @@ export class FileExplorerComponent implements OnInit {
       }
     });
   }
-  
+
   // Add this helper method to remove all descendants of a folder
   removeDescendantFolders(folders: Folder[], folderId: string): void {
     const children = folders.filter(f => f.parentId === folderId);
-    
+
     children.forEach(child => {
       const index = folders.findIndex(f => f.id === child.id);
       if (index !== -1) {
@@ -503,7 +501,7 @@ export class FileExplorerComponent implements OnInit {
       }
     });
   }
-  
+
   moveItem(): void {
     if (!this.itemToMove) return;
 
@@ -512,7 +510,7 @@ export class FileExplorerComponent implements OnInit {
         folderId: this.itemToMove.id,
         targetFolderId: this.targetFolderId
       };
-      
+
       this.folderService.moveFolder(moveRequest).subscribe({
         next: () => {
           // Reload current contents after the move
@@ -527,9 +525,9 @@ export class FileExplorerComponent implements OnInit {
     } else {
       const moveRequest: MoveAssetRequest = {
         assetId: this.itemToMove.id,
-        targetFolderId: this.targetFolderId 
+        targetFolderId: this.targetFolderId
       };
-      
+
       this.assetService.moveAssetToFolder(moveRequest).subscribe({
         next: () => {
           // Reload current contents after the move

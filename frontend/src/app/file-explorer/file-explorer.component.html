@@ -75,7 +75,7 @@
   <!-- Content - Folders and Files combined -->
   <div class="content-grid" [class.list-view]="viewMode === 'list'" *ngIf="!isLoading && !errorMessage">
     <!-- Folders first -->
-    <app-folder-card 
+    <app-folder-card
       *ngFor="let folder of filteredFolders"
       [folder]="folder"
       (navigate)="navigateToFolder($event)"
@@ -86,6 +86,7 @@
     <!-- Files second -->
     <app-file-card
       *ngFor="let asset of filteredAssets"
+      [viewable] = "asset.type.toLowerCase() === 'pdf'"
       [asset]="asset"
       (view)="viewFile($event)"
       (download)="downloadFile($event)"
@@ -114,23 +115,23 @@
       <h3>Create New Folder</h3>
       <div class="modal-form">
         <label for="folderName">Folder Name</label>
-        <input 
-          type="text" 
-          id="folderName" 
-          [(ngModel)]="newFolderName" 
-          placeholder="Enter folder name" 
+        <input
+          type="text"
+          id="folderName"
+          [(ngModel)]="newFolderName"
+          placeholder="Enter folder name"
           [disabled]="isCreatingFolder">
       </div>
       <div class="modal-actions">
-        <button 
-          class="btn btn-secondary" 
-          (click)="showNewFolderModal = false" 
+        <button
+          class="btn btn-secondary"
+          (click)="showNewFolderModal = false"
           [disabled]="isCreatingFolder">
           Cancel
         </button>
-        <button 
-          class="btn btn-primary" 
-          (click)="createFolder()" 
+        <button
+          class="btn btn-primary"
+          (click)="createFolder()"
           [disabled]="!newFolderName.trim() || isCreatingFolder">
           <span *ngIf="!isCreatingFolder">Create</span>
           <span *ngIf="isCreatingFolder">Creating...</span>
@@ -170,7 +171,7 @@
     <div class="modal-content">
       <h3>Move {{ itemToMove?.type === 'folder' ? 'Folder' : 'File' }}</h3>
       <p>Select a destination folder for <strong>{{ itemToMove?.name }}</strong></p>
-      
+
       <div class="modal-form">
         <div class="folder-select">
           <!-- Root option -->
@@ -178,12 +179,12 @@
             <i class="root-folder-icon"></i>
             <span>Root folder</span>
           </div>
-          
+
           <!-- Hierarchical folder display -->
           <ng-container *ngTemplateOutlet="folderTree; context: { $implicit: hierarchicalFolders }"></ng-container>
         </div>
       </div>
-      
+
       <div class="modal-actions">
         <button class="btn btn-secondary" (click)="showMoveModal = false">
           Cancel
@@ -198,23 +199,23 @@
   <!-- Recursive template for the folder tree -->
   <ng-template #folderTree let-folders>
     <div *ngFor="let folder of folders" class="folder-tree-item">
-      <div 
-        class="folder-option" 
+      <div
+        class="folder-option"
         [class.selected]="targetFolderId === folder.id"
         [class.has-children]="folder.children.length > 0"
         (click)="targetFolderId = folder.id">
-        
+
         <!-- Indent based on level -->
         <span class="folder-indent" *ngFor="let i of [].constructor(folder.level)"></span>
-        
+
         <!-- Folder icon and name -->
         <i class="folder-icon-small"></i>
         <span class="folder-name">{{ folder.name }}</span>
-        
+
         <!-- Optional: indicator for subfolders -->
         <span *ngIf="folder.children.length > 0" class="subfolder-count">({{ folder.children.length }})</span>
       </div>
-      
+
       <!-- Recursive call for children -->
       <ng-container *ngIf="folder.children.length > 0">
         <ng-container *ngTemplateOutlet="folderTree; context: { $implicit: folder.children }"></ng-container>
@@ -240,7 +241,7 @@
       <h3>Delete Folder</h3>
       <p>Are you sure you want to delete <strong>{{ folderToDelete?.name }}</strong>?</p>
       <p class="warning-text">This will permanently delete the folder and all its contents. This action cannot be undone.</p>
-      
+
       <div class="modal-actions">
         <button class="btn btn-secondary" (click)="showDeleteFolderModal = false">
           Cancel
@@ -272,16 +273,16 @@
           <div class="pdf-loading-spinner"></div>
           <p>Loading PDF...</p>
         </div>
-        
+
         <!-- PDF Viewer -->
-        <iframe 
+        <iframe
           #pdfViewer
-          class="pdf-iframe" 
-          [src]="currentPdfUrl" 
+          class="pdf-iframe"
+          [src]="currentPdfUrl"
           *ngIf="currentPdfUrl && !isLoadingPdf"
-          frameborder="0" 
+          frameborder="0"
           type="application/pdf"
-          width="100%" 
+          width="100%"
           height="100%">
         </iframe>
       </div>
@@ -289,28 +290,9 @@
   </div>
   <div class="pdf-modal-backdrop" *ngIf="showPdfViewer" (click)="closePdfViewer()"></div>
 
-  <!-- EPUB Viewer Modal -->
-  <div class="epub-modal" *ngIf="showEpubViewer">
-    <app-epub-viewer 
-      [asset]="currentEpubFile!" 
-      (close)="closeEpubViewer()" 
-      (download)="downloadFile($event)">
-    </app-epub-viewer>
-  </div>
-
-  <!-- AUDIO Viewer Modal -->
-  <div class="audio-modal" *ngIf="showAudioViewer">
-    <app-audio-player 
-      [asset]="currentAudioFile!" 
-      (close)="closeAudioViewer()" 
-      (download)="downloadFile($event)">
-    </app-audio-player>
-  </div>
-  <div class="audio-modal-backdrop" *ngIf="showAudioViewer" (click)="closeAudioViewer()"></div>
-
   <!-- Modal backdrop for all modals -->
-  <div class="modal-backdrop" 
-    *ngIf="showNewFolderModal || showMoveModal || showDeleteFolderModal || showDeleteFileModal || showDownloadModal || showPdfViewer || showEpubViewer || showAudioViewer" 
+  <div class="modal-backdrop"
+    *ngIf="showNewFolderModal || showMoveModal || showDeleteFolderModal || showDeleteFileModal || showDownloadModal || showPdfViewer || showEpubViewer || showAudioViewer"
     (click)="closeAllModals()">
   </div>
   <div class="pdf-modal-backdrop" *ngIf="showPdfViewer" (click)="closePdfViewer()"></div>
