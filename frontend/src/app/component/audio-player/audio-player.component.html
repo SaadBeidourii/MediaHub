@@ -1,0 +1,41 @@
+<div class="audio-player" *ngIf="audioUrl; else loading">
+  <div class="player-header">
+    <h3>{{ filename || 'Now Playing' }}</h3>
+    <button class="close-btn" (click)="close()">×</button>
+  </div>
+
+  <audio
+    #audioRef
+    [src]="audioUrl"
+    controls
+    autoplay
+    (loadedmetadata)="onLoaded()"
+    (timeupdate)="onTimeUpdate()"
+    (ended)="onEnded()">
+    Your browser doesn’t support audio playback.
+  </audio>
+
+  <div class="progress-container" *ngIf="duration">
+    <span class="time">{{ formatTime(currentTime) }}</span>
+    <div class="progress-bar" (click)="seek($event)">
+      <div class="progress" [style.width.%]="(currentTime / duration) * 100"></div>
+    </div>
+    <span class="time">{{ formatTime(duration) }}</span>
+  </div>
+
+  <div class="player-actions">
+    <button (click)="togglePlay()">
+      {{ isPlaying ? 'Pause' : 'Play' }}
+    </button>
+    <a
+      *ngIf="audioUrl"
+      [href]="audioUrl"
+      [download]="filename || 'audio.mp3'">
+      Download
+    </a>
+  </div>
+</div>
+
+<ng-template #loading>
+  <div class="loading">Loading…</div>
+</ng-template>

@@ -3,28 +3,29 @@ import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { SafeResourceUrl, DomSanitizer } from '@angular/platform-browser';
-import { FolderService } from '../services/folder.service';
-import { AssetService } from '../services/asset.service';
+import { FolderService } from '../../services/folder.service';
+import { AssetService } from '../../services/asset.service';
 import {
   Folder,
   FolderNode,
   FolderContentsResponse,
   FolderCreateRequest,
   MoveFolderRequest
-} from '../models/folder.model';
+} from '../../models/folder.model';
 import {
   Asset,
   MoveAssetRequest
-} from '../models/asset.model';
-import { FileCardComponent } from '../shared/file-card/file-card.component';
-import { FolderCardComponent } from '../shared/folder-card/folder-card.component';
+} from '../../models/asset.model';
+import { FileCardComponent } from '../../component/file-card/file-card.component';
+import { FolderCardComponent } from '../../component/folder-card/folder-card.component';
+import { AudioPlayerComponent } from "../../component/audio-player/audio-player.component";
 
 @Component({
   selector: 'app-file-explorer',
   templateUrl: './file-explorer.component.html',
   styleUrls: ['./file-explorer.component.scss'],
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, FileCardComponent, FolderCardComponent]
+  imports: [CommonModule, FormsModule, RouterModule, FileCardComponent, FolderCardComponent, AudioPlayerComponent]
 })
 export class FileExplorerComponent implements OnInit {
   @ViewChild('pdfViewer') pdfViewer: ElementRef<HTMLIFrameElement> | undefined;

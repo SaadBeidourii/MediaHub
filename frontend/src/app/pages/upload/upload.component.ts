@@ -5,7 +5,7 @@ import { HttpEventType, HttpClientModule } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { catchError, finalize, tap } from 'rxjs/operators';
 import { of } from 'rxjs';
-import { AssetService } from '../services/asset.service';
+import { AssetService } from '../../services/asset.service';
 
 @Component({
   selector: 'app-upload',

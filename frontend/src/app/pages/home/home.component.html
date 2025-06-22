@@ -1,0 +1,57 @@
+<div class="home-container">
+  <!-- Header is part of the app component, not included here -->
+
+  <!-- Dashboard Cards -->
+  <div class="dashboard-cards">
+    <app-dashboard-card
+      [title]="'Total Files'"
+      [value]="totalFiles"
+      [description]="'PDF files in your library'"
+      [iconClass]="'document-icon'"
+    ></app-dashboard-card>
+    <app-dashboard-card
+      [title]="'Storage Used'"
+      [value]="storageUsed"
+      [description]="'Total storage consumption'"
+      [iconClass]="'storage-icon'"
+    ></app-dashboard-card>
+    <app-dashboard-card
+      [title]="'Last Upload'"
+      [value]="lastUploadDate"
+      [description]="'Most recent file upload'"
+      [iconClass]="'time-icon'"
+    ></app-dashboard-card>
+  </div>
+
+  <!-- Main Content Sections -->
+  <div class="main-content">
+    <!-- Quick Actions Section -->
+    <div class="section quick-actions">
+      <h2 class="section-title">Quick Actions</h2>
+      <p class="section-subtitle">Common tasks you can perform</p>
+
+      <div class="actions-buttons">
+        <button class="btn btn-primary" (click)="uploadNewFile()">Upload New File</button>
+        <button class="btn btn-secondary" (click)="viewAllFiles()">View All Files</button>
+      </div>
+    </div>
+
+    <!-- Recent Files Section -->
+    <div class="section recent-files">
+      <h2 class="section-title">Recent Files</h2>
+      <p class="section-subtitle">Your most recently uploaded files</p>
+
+      <div class="files-list">
+        <div class="file-item" *ngFor="let file of recentFiles">
+          <div class="file-icon">
+            <i class="document-icon"></i>
+          </div>
+          <div class="file-details">
+            <h3 class="file-name">{{ file.name }}</h3>
+            <p class="file-info">{{ file.size }} • {{ file.uploadDate }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

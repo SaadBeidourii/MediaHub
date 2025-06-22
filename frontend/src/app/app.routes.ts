@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { HomeComponent } from './home/home.component';
+import { HomeComponent } from './pages/home/home.component';
 
 export const routes: Routes = [
   {
@@ -8,15 +8,15 @@ export const routes: Routes = [
   },
   {
     path: 'explorer',
-    loadComponent: () => import('./file-explorer/file-explorer.component').then(m => m.FileExplorerComponent)
+    loadComponent: () => import('./pages/file-explorer/file-explorer.component').then(m => m.FileExplorerComponent)
   },
   {
     path: 'explorer/:id',
-    loadComponent: () => import('./file-explorer/file-explorer.component').then(m => m.FileExplorerComponent)
+    loadComponent: () => import('./pages/file-explorer/file-explorer.component').then(m => m.FileExplorerComponent)
   },
   {
     path: 'upload',
-    loadComponent: () => import('./upload/upload.component').then(m => m.UploadComponent)
+    loadComponent: () => import('./pages/upload/upload.component').then(m => m.UploadComponent)
   },
   {
     path: '**',

@@ -86,7 +86,7 @@
     <!-- Files second -->
     <app-file-card
       *ngFor="let asset of filteredAssets"
-      [viewable] = "asset.type.toLowerCase() === 'pdf'"
+      [viewable] = "asset.type.toLowerCase() === 'audio' || asset.type.toLowerCase() === 'pdf'"
       [asset]="asset"
       (view)="viewFile($event)"
       (download)="downloadFile($event)"
@@ -289,6 +289,16 @@
     </div>
   </div>
   <div class="pdf-modal-backdrop" *ngIf="showPdfViewer" (click)="closePdfViewer()"></div>
+
+  <!-- AUDIO Viewer Modal -->
+   <div class="audio-modal" *ngIf="showAudioViewer">
+      <app-audio-player
+        [assetId]="currentAudioFile!.id"
+        [filename]="currentAudioFile!.name"
+        (closePlayer)="showAudioViewer = false">
+      </app-audio-player>
+
+    </div>
 
   <!-- Modal backdrop for all modals -->
   <div class="modal-backdrop"
