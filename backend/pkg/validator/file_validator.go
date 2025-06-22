@@ -2,6 +2,7 @@ package validator
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"mime/multipart"
 	"strings"
@@ -26,6 +27,7 @@ var (
 // IsPDF checks if a file is a valid PDF by examining its content
 func IsPDF(file multipart.File) (bool, error) {
 	// Reset file to beginning
+	fmt.Printf("Checking if file is PDF...\n")
 	if seeker, ok := file.(io.Seeker); ok {
 		_, err := seeker.Seek(0, io.SeekStart)
 		if err != nil {
@@ -34,6 +36,7 @@ func IsPDF(file multipart.File) (bool, error) {
 	}
 
 	// Read the first 512 bytes of the file to detect the content type
+	fmt.Printf("Reading file content...\n")
 	buffer := make([]byte, 512)
 	_, err := file.Read(buffer)
 	if err != nil && err != io.EOF {
@@ -62,6 +65,8 @@ func IsPDF(file multipart.File) (bool, error) {
 		}
 	}
 
+	fmt.Printf("Detected MIME type: %s\n", mime.String())
+
 	// Check if the file is a PDF
 	return mime.String() == "application/pdf" ||
 		strings.HasPrefix(mime.String(), "application/pdf"), nil
@@ -85,6 +90,8 @@ func ValidatePDFFile(fileHeader *multipart.FileHeader) error {
 		return err
 	}
 	defer file.Close()
+
+	fmt.Printf("File name: %s\n", fileHeader.Filename)
 
 	// Validate is PDF
 	isPDF, err := IsPDF(file)

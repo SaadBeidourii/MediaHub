@@ -75,7 +75,7 @@ func (s *AssetService) CreateAsset(fileHeader *multipart.FileHeader, assetType m
 
 // CreatePDFAsset creates a PDF asset
 func (s *AssetService) CreatePDFAsset(fileHeader *multipart.FileHeader) (*models.Asset, error) {
-	if err := validator.ValidateAudioFile(fileHeader); err != nil {
+	if err := validator.ValidatePDFFile(fileHeader); err != nil {
 		return nil, err
 	}
 	return s.CreateAsset(fileHeader, models.AssetTypePDF)
